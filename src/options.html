@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Auto Tab Cleaner 設定</title>
+</head>
+
+<body>
+    <h1>設定</h1>
+
+    <label>
+        削除までの放置時間（分）:
+        <input type="number" id="timeout" min="1" value="30">
+    </label>
+    <button id="save">保存</button>
+
+    <h2>ホワイトリスト</h2>
+    <input type="text" id="whitelistInput" placeholder="例: https://example.com">
+    <button id="addWhitelist">追加</button>
+
+    <ul id="whitelist"></ul>
+
+    <script src="options.js"></script>
+</body>
+
+</html>
