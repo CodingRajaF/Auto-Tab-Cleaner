@@ -1,16 +1,14 @@
 {
     "manifest_version": 3,
-    "name": "Auto-Tab-Cleaner",
-    "version": "0.1.0",
-    "description": "30分放置されたタブを自動で閉じる(MVP)",
+    "name": "Auto Tab Cleaner",
+    "version": "1.0",
+    "description": "一定時間放置されたタブを自動で閉じる",
     "permissions": [
         "tabs",
-        "alarms"
+        "storage"
     ],
     "background": {
         "service_worker": "background.js"
     },
-    "actions": {
-        "default_title": "Auto Tab Cleaner"
-    }
+    "option_page": "options.html"
 }
