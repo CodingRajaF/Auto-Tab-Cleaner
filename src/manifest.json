@@ -5,7 +5,8 @@
     "description": "一定時間放置されたタブを自動で閉じる",
     "permissions": [
         "tabs",
-        "storage"
+        "storage",
+        "alarms"
     ],
     "background": {
         "service_worker": "background.js"
