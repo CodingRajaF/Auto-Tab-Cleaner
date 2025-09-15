@@ -50,6 +50,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
+
     for (const tab of tabs) {
 	if (!tab || !tab.id || !tab.url) continue;
 	if (isWhitelisted(tab.url, whitelist)) {
@@ -60,6 +61,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     };
 
 	const last = tabActivity[tab.id] ?? now; // 未記録なら今を入れて猶予スタート
+    
+    //今見ているタブは削除しない
+    const activeTab=(await chrome.tabs.query({active:true,currentwindow:true}))[0];
+    if (tab.id === activeTab.id) continue;
+
     console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000));
 	if (now - last > timeoutMs) {
 	    try {
