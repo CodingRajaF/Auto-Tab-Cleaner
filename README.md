@@ -1,56 +1,80 @@
-# 📘 Project Overview / プロジェクト概要
+English | [日本語](docs/lang/README_JA.md)
 
-## 🎯 Purpose / 目的
-- Chromiumブラウザのタブを削除する
+---
 
-## 🧩 What problem does it solve? / どんな課題を解決する？
-- 多重タブによるメモリ負荷の軽減
-- 多重タブによる検索性の悪さを削減
+## 👩‍💻 For Developers *(Jump in quickly)*
 
-# 🚀 How to Use (Setup & Run) / 使用方法（セットアップ & 実行）
-- Chrome拡張の開発者モードからインストール
+* [Contributing Guide](docs/CONTRIBUTING.md)
+<br> (coming soon)
+* [Architecture & Flow](docs/ARCHITECTURE.md)
+<br> (coming soon)
+* [Changelog](docs/CHANGELOG.md)
+<br> (coming soon)
+---
 
-## ▶️ Execution / 実行方法（コマンド、起動手順など）
-- 
+## 🗑️ Auto-Tab-Cleaner
 
-## 💻 Environment / 環境
-- JavaScript
+Keep your browser tidy by automatically closing idle tabs while giving you full control.
 
-## 📦 Required Libraries / 必要ライブラリ
-- 
+---
 
-## 🛠️ Prerequisites / 前提条件
-- 
+## ✨ Features *(What it does)*
 
+-   **Automatic Tab Cleanup**  
+    Closes tabs after a set period of inactivity to reduce clutter and free up memory.
+    
+-   **Customizable Rules**  
+    Adjust idle timeout, define a maximum tab limit, and whitelist specific sites you never want closed.
+    
+-   **Safety Nets**  
+    Deleted tabs are logged for reference, and you can easily restore them if needed.
+    
+-   **Smarter Tab Management**  
+    Organize tabs into groups, with optional AI support to detect and preserve important ones.
 
+---
 
-# 🔄 Flow / 処理フロー
+## 🚀 Quick Start
 
-```mermaid
-flowchart TB
-  
-````
+1. Enable Developer Mode in Chrome extensions
+2. Load the folder containing `manifest.json`
+3. Start using right away
 
+---
 
-# ⚠️ Cautions & Limitations / 注意事項・制約事項
+## ⚠️ Caution
 
-## 🚫 Unsupported Use Cases / 想定していない使い方
+* Important limitations or warnings
+* Upcoming features (optional)
 
-*
+---
 
-## ❌ Error Conditions / エラーになる条件
+## 🛠️ RoadMap *(What's next)*
+- [x] **Automatic Tab Cleanup (Idle Tab Deletion)**  
+    Closes tabs automatically after a period of inactivity.
+    
+- [x] **Whitelist Support**  
+    Allows certain sites or URLs to be excluded from auto-deletion.
+    
+- [ ] **Customizable Timeout via UI**  
+    Users can set or change the inactivity time threshold from the extension’s UI.
+    
+- [ ] **Maximum Tab Limit Control**  
+    Sets a maximum number of tabs allowed to remain open; excess tabs get flagged or auto-closed.
+    
+- [ ] **Tab Restoration**  
+    Lets users restore accidentally closed or auto-deleted tabs.
+    
+- [ ] **Deletion Log Storage**  
+    Keeps a history of deleted tabs for later reference.
+    
+- [ ] **Tab Grouping**  
+    Organizes tabs into groups for easier navigation and management.
+    
+- [ ] **AI-based Importance Detection**  
+    Uses AI to judge whether a tab is important and should be kept open.
 
-*
+---
 
-## 🛠️ To Be Fixed / 今後直す予定のこと
-
-*
-
-
-# 📝 Notes (Optional) / 備考（任意）
-
-* References / 参考資料
-
-# 🙏 Acknowledgements / 感謝
-
-*
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
