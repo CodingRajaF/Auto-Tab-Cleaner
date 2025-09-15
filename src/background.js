@@ -27,12 +27,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onInstalled.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log(Date(Date.now()),"\nAlarm set:sweep");
+    console.log(Date(Date.now()),"\nAlarm Installed : sweep");
 });
 chrome.runtime.onStartup.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log(Date(Date.now()),"\nAlarm set:sweep");
+    console.log(Date(Date.now()),"\nAlarm Starup : sweep");
 });
 
 // ホワイトリスト判定のヘルパ
@@ -67,7 +67,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (tab.id === activeTab.id) continue;
 
     console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000),"\nURL:",tab.url);
-	if (now - last > timeoutMs) {
+	
+    if (now - last > timeoutMs) {
 	    try {
 		await chrome.tabs.remove(tab.id);
 		delete tabActivity[tab.id];
