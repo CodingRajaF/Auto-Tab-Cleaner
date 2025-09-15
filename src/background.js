@@ -42,7 +42,7 @@ function isWhitelisted(url, list) {
 
 // 定期削除本体
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-    console.log(Date(Date.now()),"\nAlarm Name:",alarm.name)
+    console.log(Date(Date.now()),"\nAlarm Fired:",alarm.name)
     if (alarm.name !== "sweep") return;
 
     const { timeoutMinutes = 30, whitelist = [] } = await chrome.storage.sync.get(["timeoutMinutes", "whitelist"]);
