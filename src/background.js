@@ -50,7 +50,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeTab = await chrome.tabs.query({ active: true, currentWindow: true })[0];
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
@@ -67,7 +67,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             try {
                 await chrome.tabs.remove(tab.id);
                 delete tabActivity[tab.id];
-                
+
             } catch (_) { /* 既に閉じられている等は無視 */ }
             continue;
         }
