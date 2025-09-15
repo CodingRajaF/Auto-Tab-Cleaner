@@ -60,7 +60,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     };
 
 	const last = tabActivity[tab.id] ?? now; // 未記録なら今を入れて猶予スタート
-    console.log(Date(Date.now()),"\n削除時間(分):",timeoutMs/60/1000,"\n経過時間:",(now-last)/60/1000);
+    console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000));
 	if (now - last > timeoutMs) {
 	    try {
 		await chrome.tabs.remove(tab.id);
