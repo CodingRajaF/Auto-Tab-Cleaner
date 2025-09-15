@@ -66,7 +66,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const activeTab=(await chrome.tabs.query({active:true,currentWindow:true}))[0];
     if (tab.id === activeTab.id) continue;
 
-    console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000));
+    console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000),"\nURL:",tab.url);
 	if (now - last > timeoutMs) {
 	    try {
 		await chrome.tabs.remove(tab.id);
