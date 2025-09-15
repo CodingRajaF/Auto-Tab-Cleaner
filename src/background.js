@@ -27,12 +27,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onInstalled.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log("Alarm set:","sweep",Date(Date.now()));
+    console.log(Date(Date.now()),"\nAlarm set:sweep");
 });
 chrome.runtime.onStartup.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log("Alarm set:","sweep",Date(Date.now()));
+    console.log(Date(Date.now()),"\nAlarm set:sweep");
 });
 
 // ホワイトリスト判定のヘルパ
@@ -42,6 +42,7 @@ function isWhitelisted(url, list) {
 
 // 定期削除本体
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+    console.log(Date(Date.now()),"\nAlarm Name:",alarm.name)
     if (alarm.name !== "sweep") return;
 
     const { timeoutMinutes = 30, whitelist = [] } = await chrome.storage.sync.get(["timeoutMinutes", "whitelist"]);
@@ -52,10 +53,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     for (const tab of tabs) {
 	if (!tab || !tab.id || !tab.url) continue;
 	if (isWhitelisted(tab.url, whitelist)) {
-        console.log(tab.url,"\n is whitelist member",Date(Date.now()));
+        console.log(Date(Date.now()),"\n[WhiteList]\n",tab.url);
         continue;
     } else {
-        console.log(tab.url,"\n is Not whitelist member",Date(Date.now()))
+        console.log(Date(Date.now()),"\n[Not WhiteList]\n",tab.url)
     };
 
 	const last = tabActivity[tab.id] ?? now; // 未記録なら今を入れて猶予スタート
