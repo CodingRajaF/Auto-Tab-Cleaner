@@ -1,15 +1,15 @@
 {
     "manifest_version": 3,
     "name": "Auto Tab Cleaner",
-    "version": "1.0",
-    "description": "一定時間放置されたタブを自動で閉じる",
-    "permissions": [
-        "tabs",
-        "storage",
-        "alarms"
-    ],
-    "background": {
-        "service_worker": "background.js"
+    "version": "0.1.0",
+    "permissions": ["storage", "tabs", "alarms"],
+    "background": { "service_worker": "background.js" },
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
     },
-    "options_page": "options.html"
+    "action": {
+        "default_popup": "options.html",
+        "default_title": "Auto Tab Cleaner"
+    }
 }
