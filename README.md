@@ -76,5 +76,7 @@ Keep your browser tidy by automatically closing idle tabs while giving you full 
 
 ---
 
+-- *If this project helped you, a ⭐ would make my day.*
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
