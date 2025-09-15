@@ -27,12 +27,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onInstalled.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log("Alarm set:","sweep",Date.now().toLocaleString("ja-JP"));
+    console.log("Alarm set:","sweep",Date(Date.now()));
 });
 chrome.runtime.onStartup.addListener(async () => {
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
-    console.log("Alarm set:","sweep",Date.now().toLocaleString("ja-JP"));
+    console.log("Alarm set:","sweep",Date(Date.now()));
 });
 
 // ホワイトリスト判定のヘルパ
@@ -52,8 +52,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     for (const tab of tabs) {
 	if (!tab || !tab.id || !tab.url) continue;
 	if (isWhitelisted(tab.url, whitelist)) {
-        console.log(tab.url,"is whitelist member",Date.now().toLocaleString("ja-JP"));
+        console.log(tab.url,"\n is whitelist member",Date(Date.now()));
         continue;
+    } else {
+        console.log(tab.url,"\n is Not whitelist member",Date(Date.now()))
     };
 
 	const last = tabActivity[tab.id] ?? now; // 未記録なら今を入れて猶予スタート
