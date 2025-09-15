@@ -50,29 +50,43 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     for (const tab of tabs) {
-	if (!tab || !tab.id || !tab.url) continue;
-	if (isWhitelisted(tab.url, whitelist)) {
-        //console.log(Date(Date.now()),"\n[WhiteList]\n",tab.url);
-        continue;
-    } else {
-        //console.log(Date(Date.now()),"\n[Not WhiteList]\n",tab.url)
-    };
+        if (!tab || !tab.id || !tab.url) continue;
 
-	const last = tabActivity[tab.id] ?? now; // 未記録なら今を入れて猶予スタート
-    
-    //今見ているタブは削除しない
-    const activeTab=(await chrome.tabs.query({active:true,currentWindow:true}))[0];
-    if (tab.id === activeTab.id) continue;
+        // アクティブタブは常に除外
+        if (activeTab && tab.id === activeTab.id) continue;
 
-    console.log(Date(Date.now()),"\n削除時間(分):",timeoutMinutes,"\n経過時間:",Math.round((now-last)/60/1000),"\nURL:",tab.url);
-	
-    if (now - last > timeoutMs) {
-	    try {
-		await chrome.tabs.remove(tab.id);
-		delete tabActivity[tab.id];
-	    } catch (_) { /* 既に閉じられてる等は無視 */ }
-	}
+        // ホワイトリストは除外
+        if (isWhitelisted(tab.url, whitelist)) continue;
+
+        // アクティビティ未記録のタブは即時削除（アクティブ除外済み）
+        const last = tabActivity[tab.id];
+        if (last === undefined) {
+            try {
+                await chrome.tabs.remove(tab.id);
+                delete tabActivity[tab.id];
+                
+            } catch (_) { /* 既に閉じられている等は無視 */ }
+            continue;
+        }
+
+        console.log(
+            Date(Date.now()),
+            "\n削除時間(分):",
+            timeoutMinutes,
+            "\n経過時間:",
+            Math.round((now - last) / 60 / 1000),
+            "\nURL:",
+            tab.url
+        );
+
+        if (now - last > timeoutMs) {
+            try {
+                await chrome.tabs.remove(tab.id);
+                delete tabActivity[tab.id];
+            } catch (_) { /* 既に閉じられている等は無視 */ }
+        }
     }
 });
