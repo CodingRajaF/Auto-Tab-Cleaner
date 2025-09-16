@@ -55,11 +55,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
 
-        // アクティブタブは常に除外
-        if (activeTab && tab.id === activeTab.id) {
-            tabActivity[tab.id]=Date.now();
-            continue;
-        };
         // ホワイトリストは除外
         if (isWhitelisted(tab.url, whitelist)) continue;
 
@@ -72,7 +67,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
             } catch (_) { /* 既に閉じられている等は無視 */ }
             continue;
-        }
+        };
 
         console.log(
             Date(Date.now()),
@@ -84,6 +79,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             tab.url
         );
 
+        // アクティブタブは常に除外
+        if (activeTab && tab.id === activeTab.id) {
+            tabActivity[tab.id]=Date.now();
+            continue;
+        };
+        
         if (now - last > timeoutMs) {
             try {
                 await chrome.tabs.remove(tab.id);
