@@ -56,8 +56,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (!tab || !tab.id || !tab.url) continue;
 
         // アクティブタブは常に除外
-        if (activeTab && tab.id === activeTab.id) continue;
-
+        if (activeTab && tab.id === activeTab.id) {
+            tabActivity[tab.id]=Date.now();
+            continue;
+        };
         // ホワイトリストは除外
         if (isWhitelisted(tab.url, whitelist)) continue;
 
