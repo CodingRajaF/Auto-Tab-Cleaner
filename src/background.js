@@ -50,7 +50,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
-    const activeTab = await chrome.tabs.query({ active: true, currentWindow: true })[0];
+    const activeTab = (await chrome.tabs.query({ active: true}))[0];
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
