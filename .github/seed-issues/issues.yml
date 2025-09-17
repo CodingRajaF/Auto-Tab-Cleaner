@@ -1,14 +1,14 @@
-- title: 🧭 プロジェクト方針を決める
-  labels: [planning]
-  body: |
-    - 目的/ターゲット/成功条件を決める
-    - 期限: 今週中
-- title: 🔧 MVPのスコープ定義
-  labels: [mvp, todo]
-  body: |
-    - 機能一覧
-    - 非機能要件
-- title: 🧪 CI設定
-  labels: [ci]
-  body: |
-    - lint/test の雛形追加
+#- title: 🧭 プロジェクト方針を決める
+#  labels: [planning]
+#  body: |
+#    - 目的/ターゲット/成功条件を決める
+#    - 期限: 今週中
+#- title: 🔧 MVPのスコープ定義
+#  labels: [mvp, todo]
+#  body: |
+#    - 機能一覧
+#    - 非機能要件
+#- title: 🧪 CI設定
+#  labels: [ci]
+#  body: |
+#    - lint/test の雛形追加
