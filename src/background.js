@@ -50,9 +50,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
-    const activeTab = (await chrome.tabs.query({ active: true}))[0];
-    const audibleTab = await chrome.tabs.query({ audible: true});
-    const pinnedTab = await chrome.tabs.query({ pinned: true});
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
@@ -81,15 +78,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             tab.url
         );
 
-        // アクティブタブは常に除外
-        if (activeTab && tab.id === activeTab.id) {
+        // アクティブタブ,オーディオタブ,ピン(固定)タブは常にタブ時間を更新
+        if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id]=Date.now();
             continue;
         };
-
-        
-
-
 
         if (now - last > timeoutMs) {
             try {
