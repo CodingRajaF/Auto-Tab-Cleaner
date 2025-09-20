@@ -1,0 +1,31 @@
+name: "Bug Issue Template"
+description: Bug issue template
+title: "fix: "
+labels: ["status: backlog","bug"]
+projects: ["My-Projects"]
+body:
+  - type: markdown
+    attributes:
+      value: "## 📃 Information"
+  - type: textarea
+    id: enviroment_information
+    attributes:
+      label: Your enviroment information
+      description: Provide your enviroment information e.g. browser version,
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide steps to reproduce the bug
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual
+      description: What did you expect vs what actually happend?
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / References
+      description: Links, discussions, or related resources
