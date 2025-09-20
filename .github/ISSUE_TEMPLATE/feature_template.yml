@@ -12,8 +12,6 @@ body:
     attributes:
       label: Context / Problem
       description: Why is this needed? / What problem does it solve?
-    validations:
-      required: true
   - type: textarea
     id: description
     attributes:
@@ -27,6 +25,8 @@ body:
     attributes:
       label: Definition of Done
       description: What counts as complete? (acceptance criteria)
+    validations:
+      required: true
   - type: textarea
     id: notes
     attributes:
