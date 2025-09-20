@@ -51,8 +51,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     const tabs = await chrome.tabs.query({});
     const activeTab = (await chrome.tabs.query({ active: true}))[0];
-    const audibleTab = await chrome.tabs.query({audible: true});
-    
+    const audibleTab = await chrome.tabs.query({ audible: true});
+    const pinnedTab = await chrome.tabs.query({ pinned: true});
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
