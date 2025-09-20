@@ -50,13 +50,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const now = Date.now();
 
     const tabs = await chrome.tabs.query({});
-    const activeTab = await chrome.tabs.query({ active: true, currentWindow: true })[0];
+    const activeTab = (await chrome.tabs.query({ active: true}))[0];
+    const audibleTab = await chrome.tabs.query({audible: true});
+    
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) continue;
-
-        // アクティブタブは常に除外
-        if (activeTab && tab.id === activeTab.id) continue;
 
         // ホワイトリストは除外
         if (isWhitelisted(tab.url, whitelist)) continue;
@@ -70,7 +69,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
             } catch (_) { /* 既に閉じられている等は無視 */ }
             continue;
-        }
+        };
 
         console.log(
             Date(Date.now()),
@@ -81,6 +80,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             "\nURL:",
             tab.url
         );
+
+        // アクティブタブは常に除外
+        if (activeTab && tab.id === activeTab.id) {
+            tabActivity[tab.id]=Date.now();
+            continue;
+        };
+
+        
+
+
 
         if (now - last > timeoutMs) {
             try {
