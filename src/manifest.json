@@ -11,5 +11,9 @@
     "background": {
         "service_worker": "background.js"
     },
-    "options_page": "options.html"
+    "options_page": "options.html",
+    "action": {
+        "default_title": "Auto Tab Cleaner",
+        "default_popup": "popup.html"
+    }
 }
