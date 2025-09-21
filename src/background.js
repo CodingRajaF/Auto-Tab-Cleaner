@@ -79,6 +79,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         const last = tabActivity[tab.id];
 
+        //理由: 情報確認用
+        console.log(
+        "[tab information]",
+        "\n時刻: ",new Date(),
+        "\n設定時刻: ",timeoutMinutes,
+        "\n経過時刻: ",Math.round((now - last)/60000),
+        "\nURL: ",tab.url
+        );
+        
+
         // 理由: 活動履歴が取れないタブはゾンビ化の可能性があるためフェイルセーフで掃除する
         if (last === undefined) {
             try {
@@ -103,12 +113,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 await logRemovedTab(tab);
                 await chrome.tabs.remove(tab.id);
                 delete tabActivity[tab.id];
-                console.log(
-                    "[tab deleted]",
-                    "\n削除時刻: ",new Date(),
-                    "\nURL: ",tab.url,
-                    "\n経過時刻: ",now - last
-                );
+
             } catch (_) {
                 // 理由: 競合や権限エラーでも処理全体を止めないため
             }
