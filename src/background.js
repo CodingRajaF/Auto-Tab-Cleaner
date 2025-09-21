@@ -103,6 +103,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 await logRemovedTab(tab);
                 await chrome.tabs.remove(tab.id);
                 delete tabActivity[tab.id];
+                console.log(
+                    "[tab deleted]",
+                    "\n削除時刻: ",new Date(),
+                    "\nURL: ",tab.url,
+                    "\n経過時刻: ",now - last
+                );
             } catch (_) {
                 // 理由: 競合や権限エラーでも処理全体を止めないため
             }
