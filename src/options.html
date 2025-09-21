@@ -4,6 +4,7 @@
         <meta charset="utf-8" />
         <title>Auto Tab Cleaner 設定</title>
         <style>
+            /* 理由: シンプルなレイアウトで可読性と操作性を担保するため */
             body { font-family: system-ui, sans-serif; line-height: 1.6; padding: 16px; }
             h1 { margin-top: 0; }
             label { display: block; margin: 12px 0; }
@@ -20,22 +21,28 @@
 
         <section>
             <label>
-                削除までの放置時間（分）
-                <input type="number" id="timeout" min="1" value="30" />
+                <!-- 理由: ユーザーがワークフローに合わせ猶予時間を調整できるようにするため -->
+                削除までの放置時間<input type="number" id="timeout" min="1" value="30" />
             </label>
+            <!-- 理由: 自動保存による意図せぬ変更反映を避けるため明示的に保存する -->
             <button id="save">保存</button>
         </section>
 
         <section>
             <h2>ホワイトリスト</h2>
-            <input type="text" id="whitelistInput" placeholder="例: https://example.com" />
+            <!-- 理由: 除外対象をURL指定できれば予期しないタブ閉鎖を防げるため -->
+            <input type="text" id="whitelistInput" placeholder="https://example.com" />
+            <!-- 理由: 入力確定の明確なトリガーを設けて誤登録を減らすため -->
             <button id="addWhitelist">追加</button>
+            <!-- 理由: 現在の設定を可視化し検証・整理を容易にするため -->
             <ul id="whitelist"></ul>
         </section>
 
         <section>
             <h2>最近削除したタブ</h2>
+            <!-- 理由: 不要になった履歴を消去しプライバシーと視認性を保つため -->
             <button id="clearRemoved">履歴をクリア</button>
+            <!-- 理由: 誤って閉じたタブを迅速に復元できる導線を提供するため -->
             <ul id="recentlyRemoved"></ul>
         </section>
 
