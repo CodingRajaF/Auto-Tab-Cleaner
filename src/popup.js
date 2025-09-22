@@ -1,4 +1,4 @@
-// 理由: ポップアップ表示のたびに最新状態を反映するため
+﻿// 理由: ポップアップ表示のたびに最新状態を反映するため
 document.addEventListener("DOMContentLoaded", () => {
     // 理由: 繰り返しDOM探索を避け描画コストを抑えるため
     const timeoutInput = document.getElementById("timeout");
@@ -11,36 +11,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 理由: ユーザーが以前保存した設定を継続利用できるようにするため
     chrome.storage.sync.get(["timeoutMinutes", "whitelist"], (data) => {
-        // 理由: 初期入力値が空だと判断に迷うため（既定値を提示）
         timeoutInput.value = data.timeoutMinutes || 30;
-        // 理由: 設定の可視性を確保し、編集可能にするため
         (data.whitelist || []).forEach((url) => addWhitelistItem(url));
     });
 
     // 理由: 明示的な保存操作で意図しない変更を防ぐため
     saveButton.addEventListener("click", () => {
-        // 理由: ストレージには数値として保持し比較/計算を簡潔にするため
         const timeoutMinutes = parseInt(timeoutInput.value, 10);
-        // 理由: 背景スクリプトと共有できる永続領域に保存するため
         chrome.storage.sync.set({ timeoutMinutes }, () => {
-            // 理由: 操作結果のフィードバックがないと保存可否が判断できないため
             alert("保存しました");
         });
     });
 
     // 理由: ユーザーが除外したいサイトを動的に登録できるようにするため
     addWhitelistButton.addEventListener("click", () => {
-        // 理由: 不要な空白により重複や誤登録が発生するのを避けるため
         const url = whitelistInput.value.trim();
-        if (!url) return; // 理由: 空値の登録は意味がなくノイズになるため
-
-        // 理由: 既存値を破壊せずに追記し、設定の整合性を保つため
+        if (!url) return; 
         chrome.storage.sync.get("whitelist", (data) => {
             const list = Array.isArray(data.whitelist) ? data.whitelist : [];
             list.push(url);
-            // 理由: 背景処理の判定ロジックと同期させるため
             chrome.storage.sync.set({ whitelist: list }, () => {
-                // 理由: モデル更新に合わせてUIも即時反映し可視性を保つため
                 addWhitelistItem(url);
                 whitelistInput.value = "";
             });
@@ -52,22 +42,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 理由: プライバシー配慮やリスト肥大化を防ぐため
     clearRemovedBtn.addEventListener("click", async () => {
-        // 理由: 履歴を空にして一覧表示をリセットするため
         await chrome.storage.local.set({ recentlyRemoved: [] });
-        // 理由: モデル変更をUIに反映しユーザーに結果を示すため
         renderRecentlyRemoved();
     });
 
-    // 理由: 関心毎を分離し、可読性と再利用性を上げるため
 
-    // 理由: 文字列以外の要素生成を隠蔽し、呼び出し側を簡潔にするため
+    // ホワイトリスト項目のDOM生成を一箇所に集約し操作性を保つため
     function addWhitelistItem(url) {
         const li = document.createElement("li");
-        li.textContent = url;
+        li.dataset.index = String(whitelistUl.children.length);
+
+        const row = document.createElement("div");
+        row.className = "item-row";
+
+        const urlSpan = document.createElement("span");
+        urlSpan.className = "url";
+        urlSpan.textContent = url;
+        urlSpan.title = url;
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "delete-whitelist";
+        deleteBtn.textContent = "×";
+        deleteBtn.addEventListener("click", () => removeWhitelistItem(li));
+
+        row.appendChild(urlSpan);
+        row.appendChild(deleteBtn);
+        li.appendChild(row);
         whitelistUl.appendChild(li);
     }
 
-    // 理由: ユーザーのロケールに合わせて直感的に理解できる表示にするため
+    // リスト内で一意のインデックスを保ち操作不整合を防ぐため
+    function reindexWhitelist() {
+        Array.from(whitelistUl.children).forEach((item, idx) => {
+            item.dataset.index = String(idx);
+        });
+    }
+
+    // 削除処理とストレージ中の整合性を同時に保つため
+    function removeWhitelistItem(targetLi) {
+        const index = Number.parseInt(targetLi.dataset.index || "-1", 10);
+        if (Number.isNaN(index) || index < 0) {
+            return;
+        }
+
+        chrome.storage.sync.get("whitelist", (data) => {
+            const list = Array.isArray(data.whitelist) ? data.whitelist : [];
+            if (index >= list.length) {
+                return;
+            }
+
+            list.splice(index, 1);
+            chrome.storage.sync.set({ whitelist: list }, () => {
+                targetLi.remove();
+                reindexWhitelist();
+            });
+        });
+    }
+
+    // ユーザーのロケールに合わせて直感的に時刻を読める表示にするため
     function formatTime(ts) {
         try {
             return new Date(ts).toLocaleString();
@@ -137,3 +170,4 @@ document.addEventListener("DOMContentLoaded", () => {
         renderRecentlyRemoved();
     }
 });
+

@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8" />
+        <meta charset="UTF-8" />
         <title>Auto Tab Cleaner ポップアップ設定</title>
         <style>
             /* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
@@ -18,6 +18,8 @@
             button { cursor: pointer; padding: 6px 10px; font-size: 13px; }
             .row { display: flex; gap: 8px; }
             .row > * { flex: 1; }
+            .delete-whitelist { border: none; background: transparent; color: #d32f2f; padding: 2px 6px; font-size: 16px; line-height: 1; }
+            .delete-whitelist:hover { color: #b71c1c; }
         </style>
     </head>
     <body>
@@ -57,3 +59,7 @@
         <script src="popup.js"></script>
     </body>
     </html>
+
+
+
+
