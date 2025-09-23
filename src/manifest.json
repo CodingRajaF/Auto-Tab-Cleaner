@@ -2,11 +2,12 @@
     "manifest_version": 3,
     "name": "Auto Tab Cleaner",
     "version": "1.0",
-    "description": "一定時間放置されたタブを自動で閉じる",
+    "description": "��莞�ԕ��u���ꂽ�^�u�������ŕ���",
     "permissions": [
         "tabs",
         "storage",
-        "alarms"
+        "alarms",
+        "tabGroups"
     ],
     "background": {
         "service_worker": "background.js"
