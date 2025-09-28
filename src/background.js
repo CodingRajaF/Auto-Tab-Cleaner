@@ -1,4 +1,4 @@
-// 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
+﻿// 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
 const tabActivity = {};
 
 // 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
@@ -40,10 +40,15 @@ async function logRemovedTab(tab, reason = "timeout") {
 
 // 理由: 設定未初期化でも確実に既定値を利用できるよう保証するため
 async function ensureDefaultSettings() {
-    const defaults = { timeoutMinutes: 30, fullCleanupMinutes: 1440 };
+    const defaults = {
+        timeoutMinutes: 30,
+        fullCleanupMinutes: 1440,
+        fullCleanupEnabled: true,
+    };
     const stored = await chrome.storage.sync.get([
         "timeoutMinutes",
         "fullCleanupMinutes",
+        "fullCleanupEnabled",
     ]);
 
     let timeoutMinutes = Number(stored.timeoutMinutes);
@@ -64,12 +69,17 @@ async function ensureDefaultSettings() {
         fullCleanupMinutes = Math.max(timeoutMinutes + 1, defaults.fullCleanupMinutes);
     }
 
+    const fullCleanupEnabled = stored.fullCleanupEnabled !== false;
+
     const updates = {};
     if (stored.timeoutMinutes !== timeoutMinutes) {
         updates.timeoutMinutes = timeoutMinutes;
     }
     if (stored.fullCleanupMinutes !== fullCleanupMinutes) {
         updates.fullCleanupMinutes = fullCleanupMinutes;
+    }
+    if (stored.fullCleanupEnabled !== fullCleanupEnabled) {
+        updates.fullCleanupEnabled = fullCleanupEnabled;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -118,21 +128,24 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         return; // 理由: 他アラームと処理を混同しないため
     }
 
-    const {
-        timeoutMinutes = 30,
-        fullCleanupMinutes = 1440,
-        whitelist = [],
-    } = await chrome.storage.sync.get([
+    const settings = await chrome.storage.sync.get([
         "timeoutMinutes",
         "fullCleanupMinutes",
+        "fullCleanupEnabled",
         "whitelist",
     ]);
 
-    const normalizedTimeout = Math.max(1, Math.floor(timeoutMinutes));
-    let normalizedFullCleanup = Math.max(1, Math.floor(fullCleanupMinutes));
+    const normalizedTimeout = Math.max(1, Math.floor(settings.timeoutMinutes ?? 30));
+    let normalizedFullCleanup = Math.max(
+        1,
+        Math.floor(settings.fullCleanupMinutes ?? 1440)
+    );
     if (normalizedFullCleanup <= normalizedTimeout) {
         normalizedFullCleanup = normalizedTimeout + 1;
     }
+
+    const fullCleanupEnabled = settings.fullCleanupEnabled !== false;
+    const whitelist = settings.whitelist || [];
 
     const timeoutMs = minutesToMs(normalizedTimeout);
     const fullCleanupMs = minutesToMs(normalizedFullCleanup);
@@ -164,7 +177,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         }
 
         const elapsed = now - lastActivity;
-        const forceRemoval = elapsed >= fullCleanupMs;
+        const forceRemoval = fullCleanupEnabled && elapsed >= fullCleanupMs;
         const whitelisted = isWhitelisted(tab.url, whitelist);
 
         if (!forceRemoval && whitelisted) {
@@ -193,6 +206,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             elapsedMinutes: Math.round(elapsed / 60000),
             timeoutMinutes: normalizedTimeout,
             fullCleanupMinutes: normalizedFullCleanup,
+            fullCleanupEnabled,
             loggedAt: new Date(now).toISOString(),
         });
     }

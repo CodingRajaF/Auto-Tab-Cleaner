@@ -1,4 +1,4 @@
-const MINUTES_PER_HOUR = 60; // 理由: 分↔時間の変換を一元管理し保守性を上げるため
+﻿const MINUTES_PER_HOUR = 60; // 理由: 分↔時間の変換を一元管理し保守性を上げるため
 const DEFAULT_TIMEOUT_MINUTES = 30; // 理由: 既存仕様で定義済みの既定値を明示するため
 const DEFAULT_FULL_CLEANUP_HOURS = 24; // 理由: 全削除タイマーの既定値 (24h=1440min) を分かりやすく保持するため
 
@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 理由: 繰り返しDOM探索を避け、操作時のコストを抑えるため
     const timeoutInput = document.getElementById("timeout");
     const fullCleanupInput = document.getElementById("fullCleanup");
+    const fullCleanupToggle = document.getElementById("fullCleanupToggle");
     const saveButton = document.getElementById("save");
     const whitelistInput = document.getElementById("whitelistInput");
     const addWhitelistButton = document.getElementById("addWhitelist");
@@ -13,9 +14,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const recentlyRemovedUl = document.getElementById("recentlyRemoved");
     const clearRemovedBtn = document.getElementById("clearRemoved");
 
-    // 理由: 以前の選択を保持し、意図どおりの動作を継続させるため
+    let cachedFullCleanupMinutes = DEFAULT_FULL_CLEANUP_HOURS * MINUTES_PER_HOUR; // 理由: トグルOFF時に直近の設定値を保持するため
+
     chrome.storage.sync.get(
-        ["timeoutMinutes", "fullCleanupMinutes", "whitelist"],
+        ["timeoutMinutes", "fullCleanupMinutes", "fullCleanupEnabled", "whitelist"],
         (data) => {
             const normalizedTimeout = normalizeTimeout(
                 data.timeoutMinutes,
@@ -26,60 +28,86 @@ document.addEventListener("DOMContentLoaded", () => {
                 normalizedTimeout,
                 DEFAULT_FULL_CLEANUP_HOURS
             );
+            const normalizedFullCleanupMinutes = Math.floor(
+                normalizedFullCleanupHours * MINUTES_PER_HOUR
+            );
+            const enabled = normalizeFullCleanupToggle(data.fullCleanupEnabled);
+
             timeoutInput.value = normalizedTimeout;
             fullCleanupInput.value = formatHours(normalizedFullCleanupHours);
+            fullCleanupToggle.checked = enabled;
+            cachedFullCleanupMinutes = normalizedFullCleanupMinutes;
+            applyFullCleanupState(enabled);
 
-            // 理由: 現在の設定内容を可視化し、編集を容易にするため
             (data.whitelist || []).forEach((url) => addWhitelistItem(url));
         }
     );
 
-    // 理由: 明示的な保存操作により、意図しない変更の反映を防ぐため
+    fullCleanupToggle.addEventListener("change", () => {
+        const enabled = fullCleanupToggle.checked;
+        applyFullCleanupState(enabled);
+    });
+
     saveButton.addEventListener("click", () => {
         const timeoutValue = Number(timeoutInput.value);
         const fullCleanupHourValue = Number(fullCleanupInput.value);
+        const fullCleanupEnabled = fullCleanupToggle.checked;
 
-        // 理由: 数値以外の入力は設定破綻につながるため
-        if (
-            !Number.isFinite(timeoutValue) ||
-            !Number.isFinite(fullCleanupHourValue)
-        ) {
+        if (!Number.isFinite(timeoutValue)) {
             alert("数値を入力してください");
             return;
         }
 
         const timeoutMinutes = Math.floor(timeoutValue);
-        const fullCleanupMinutes = Math.floor(
-            fullCleanupHourValue * MINUTES_PER_HOUR
-        );
-
-        // 理由: 無効値を保存すると削除ロジックが破綻するため
-        if (timeoutMinutes < 1 || fullCleanupMinutes < 1) {
-            alert("通常・全削除タイムアウトは1以上で設定してください");
+        if (timeoutMinutes < 1) {
+            alert("通常タイムアウトは1以上で設定してください");
             return;
         }
 
-        // 理由: 全削除タイムアウトは最終ラインとして通常タイムアウトより長くあるべきため
-        if (timeoutMinutes >= fullCleanupMinutes) {
-            alert("全削除タイムアウトは通常タイムアウトより大きい必要があります");
-            return;
+        let nextFullCleanupMinutes = cachedFullCleanupMinutes;
+
+        if (fullCleanupEnabled) {
+            if (!Number.isFinite(fullCleanupHourValue)) {
+                alert("数値を入力してください");
+                return;
+            }
+
+            const computedMinutes = Math.floor(
+                fullCleanupHourValue * MINUTES_PER_HOUR
+            );
+
+            if (computedMinutes < 1) {
+                alert("全削除タイムアウトは1時間以上で設定してください");
+                return;
+            }
+
+            if (timeoutMinutes >= computedMinutes) {
+                alert("全削除タイムアウトは通常タイムアウトより大きい必要があります");
+                return;
+            }
+
+            nextFullCleanupMinutes = computedMinutes;
         }
 
         chrome.storage.sync.set(
-            { timeoutMinutes, fullCleanupMinutes },
+            {
+                timeoutMinutes,
+                fullCleanupMinutes: nextFullCleanupMinutes,
+                fullCleanupEnabled,
+            },
             () => {
                 if (chrome.runtime.lastError) {
                     alert(`保存に失敗しました: ${chrome.runtime.lastError.message}`);
                     return;
                 }
+                cachedFullCleanupMinutes = nextFullCleanupMinutes;
                 alert("保存しました");
             }
         );
     });
 
-    // 理由: ユーザーが除外対象を柔軟に拡張できるようにするため
     addWhitelistButton.addEventListener("click", () => {
-        const url = whitelistInput.value.trim(); // 理由: 不要な空白による誤登録を防ぐため
+        const url = whitelistInput.value.trim(); // 理由: 不要な空白が原因の重複・誤登録を防ぐため
         if (!url) return;
 
         chrome.storage.sync.get("whitelist", (data) => {
@@ -92,34 +120,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 理由: 自動削除の結果を可視化し、誤操作からの復旧経路を用意するため
-    renderRecentlyRemoved();
+    renderRecentlyRemoved(); // 理由: 自動削除の結果を可視化し、誤操作からの復旧経路を用意するため
 
-    // 理由: プライバシー配慮とリスト肥大化の抑制のため
     clearRemovedBtn.addEventListener("click", async () => {
         await chrome.storage.local.set({ recentlyRemoved: [] });
         renderRecentlyRemoved();
     });
 
-    // 理由: 関心の分離により読みやすさ・再利用性を確保するため
     function addWhitelistItem(url) {
         const li = document.createElement("li");
         li.textContent = url;
         whitelistUl.appendChild(li);
     }
 
-    // 理由: ユーザーのロケールに沿う表現で理解しやすくするため
     function formatTime(ts) {
         try {
-            return new Date(ts).toLocaleString(); // 理由: ブラウザ/OSの設定に自動追従させるため
+            return new Date(ts).toLocaleString();
         } catch (_) {
             return "";
         }
     }
 
-    // 理由: ストレージの真実の状態と画面表示を一致させるため
     async function renderRecentlyRemoved() {
-        recentlyRemovedUl.innerHTML = ""; // 理由: 再描画時の重複を防ぐため
+        recentlyRemovedUl.innerHTML = ""; // 理由: 再描画時の重複表示やゴースト要素を防ぐため
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
         );
@@ -149,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 理由: 復元の一連の副作用を集約し、安全に再利用できるようにするため
     async function restoreItem(index) {
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
@@ -162,9 +184,15 @@ document.addEventListener("DOMContentLoaded", () => {
         await chrome.storage.local.set({ recentlyRemoved });
         renderRecentlyRemoved();
     }
+
+    function applyFullCleanupState(enabled) {
+        fullCleanupInput.disabled = !enabled;
+        fullCleanupInput.title = enabled
+            ? ""
+            : "全削除タイマーを有効にすると編集できます";
+    }
 });
 
-// 理由: タイムアウト入力を分単位に正規化し、最小値を強制するため
 function normalizeTimeout(value, fallback) {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue < 1) {
@@ -173,7 +201,6 @@ function normalizeTimeout(value, fallback) {
     return Math.floor(numberValue);
 }
 
-// 理由: 分で保存されている全削除タイマーを時間入力向けに正規化するため
 function normalizeFullCleanupHours(valueInMinutes, timeoutMinutes, fallbackHours) {
     const fallbackMinutes = Math.floor(fallbackHours * MINUTES_PER_HOUR);
     const numberValue = Number(valueInMinutes);
@@ -193,7 +220,10 @@ function normalizeFullCleanupHours(valueInMinutes, timeoutMinutes, fallbackHours
     return Math.round(hours * 100) / 100;
 }
 
-// 理由: 入力欄へ表示する際に余計な 0 を避けつつ判読性を確保するため
+function normalizeFullCleanupToggle(value) {
+    return value !== false; // 理由: 既存ユーザーへはデフォルトONを維持するため
+}
+
 function formatHours(hours) {
     if (Number.isInteger(hours)) {
         return String(hours);
