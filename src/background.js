@@ -87,6 +87,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         "\n経過時刻: ",Math.round((now - last)/60000),
         "\nURL: ",tab.url
         );
+
+        // 理由: アクティブ/再生中/ピン留めのタブは利用中の意図が強いため期限を延長する
+        if (tab.active || tab.audible || tab.pinned) {
+            tabActivity[tab.id] = Date.now();
+            continue;
+        }
         
 
         // 理由: 活動履歴が取れないタブはゾンビ化の可能性があるためフェイルセーフで掃除する
@@ -101,11 +107,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             continue;
         }
 
-        // 理由: アクティブ/再生中/ピン留めのタブは利用中の意図が強いため期限を延長する
-        if (tab.active || tab.audible || tab.pinned) {
-            tabActivity[tab.id] = Date.now();
-            continue;
-        }
+
 
         // 理由: 閾値を超過したタブはリソース解放と視認性向上のため閉じる
         if (now - last > timeoutMs) {
