@@ -166,14 +166,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         if (lastActivity === undefined) {
             try {
-                await logRemovedTab(tab, "unknown");
-                await chrome.tabs.remove(tab.id);
-            } catch (error) {
-                console.warn("Failed to remove tab without activity", tab?.id, error);
-            } finally {
-                delete tabActivity[tab.id];
-            }
+                tabActivity[tab.id] = now;
             continue;
+            } catch (error) {
+                console.warn("Failed to seed tab activity", { tabId: tab?.id }, error);
+                continue;
+            }
         }
 
         const elapsed = now - lastActivity;
