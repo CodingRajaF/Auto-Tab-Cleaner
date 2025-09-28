@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -9,6 +9,9 @@
             h1 { margin-top: 0; }
             label { display: block; margin: 12px 0; }
             label small { display: block; color: #666; font-size: 12px; margin-top: 4px; }
+            .toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+            input[type="checkbox"] { transform: scale(1.1); }
+            input:disabled { background: #f5f5f5; color: #777; }
             ul { padding-left: 20px; }
             li { margin: 6px 0; }
             .item-row { display: flex; align-items: center; gap: 8px; }
@@ -24,6 +27,10 @@
             <label>
                 <!-- 理由: ユーザーがワークフローに合わせ猶予時間を調整できるようにするため -->
                 削除までの放置時間（分）<input type="number" id="timeout" min="1" value="30" />
+            </label>
+            <label class="toggle">
+                <!-- 理由: 全削除タイマーを任意で停止できるようにするため -->
+                <input type="checkbox" id="fullCleanupToggle" checked />全削除タイマーを有効にする
             </label>
             <label>
                 <!-- 理由: ホワイトリストに依存せず最終的にタブを整理できる猶予時間を設けるため -->
