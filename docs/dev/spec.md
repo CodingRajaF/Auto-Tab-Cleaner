@@ -1,0 +1,66 @@
+# プロダクト仕様（ベースライン）
+- Spec Version: 0.3.0
+- Product Goal: 自動タブ整理によってブラウザのタブ肥大化を抑え、生産性と快適さを維持する。
+- System Boundary:
+  - 対象: Chrome 拡張 Auto-Tab-Cleaner の設定 UI（オプション/ポップアップ）・バックグラウンド処理・削除履歴機能。
+  - 非対象: タブグループ自動化、AI 判定、他ブラウザ固有機能。
+
+## 1. 要件
+### 1.1 機能要件（FR）
+- FR-001: 非ホワイトリストのタブは `timeoutMinutes` (初期値 30 分) を超えた時点で自動削除されること。【FS-001】
+- FR-002: `fullCleanupMinutes` (初期値 1440 分) を超過したタブはホワイトリスト登録に関わらず削除されること。【FS-001】
+- FR-003: オプション画面に `timeoutMinutes` と `fullCleanupMinutes` を別 UI として表示・編集できること。【FS-001】
+- FR-004: 設定保存時に 1 以上かつ `timeoutMinutes < fullCleanupMinutes` を満たさない場合は保存を拒否し理由を提示すること。【FS-001】
+- FR-005: 設定値は `chrome.storage.sync` に保存され、表示時に既定値または保存値でプリセットされること。【FS-001】
+- FR-006: `fullCleanupMinutes` による削除も `recentlyRemoved` ログへ記録され復元手段を維持すること。【FS-001】
+- FR-007: 既存ユーザーのアップデート時、`fullCleanupMinutes` 未設定なら 1440 を自動適用すること。【FS-001】
+- FR-008: 設定保存成功時は既存のアラート表示でユーザーに通知すること。【FS-001】
+- FR-009: ポップアップ画面でも `timeoutMinutes` と `fullCleanupMinutes` を各々編集・保存できること。【FS-001】
+- FR-010: ポップアップで保存した値は `chrome.storage.sync` に反映され、オプション画面と共通化されること。【FS-001】
+- FR-011: ポップアップでの入力にも `timeoutMinutes < fullCleanupMinutes` / 1 以上などのバリデーションとフィードバックを適用すること。【FS-001】
+- FR-012: ポップアップ保存成功／失敗時はオプション画面と同等のメッセージでフィードバックすること。【FS-001】
+- FR-013: `fullCleanupMinutes` の入力 UI は時間単位 (hour) とし、保存時に分へ換算して `chrome.storage.sync` に保持すること。【FS-001】
+- FR-014: 時間単位である旨をラベル・説明文で明示し、ユーザーが単位を誤認しないようにすること。【FS-001】
+
+### 1.2 非機能要件（NFR）
+- NFR-001: タイムアウト値は整数分として扱い、0 以下や非数値は補正またはエラー扱いとする。【FS-001】
+- NFR-002: タイムアウト判定の追加によりストレージ I/O やアラーム処理のパフォーマンスを低下させないこと。【FS-001】
+- NFR-003: UI とコードは既存スタイルおよび Why コメント方針（必要時は日本語補足）を踏襲すること。【FS-001】
+- NFR-004: ポップアップ UI の拡張によって表示崩れや操作遅延が生じないこと（幅 360px 内で完結）。【FS-001】
+- NFR-005: バリデーション/保存ロジックはオプションとポップアップで整合し、共通関数または同等実装で維持されること。【FS-001】
+- NFR-006: 時間入力を分へ変換する際は小数入力を許容しても保存前に整数分へ丸め、一貫性を担保すること。【FS-001】
+
+## 2. アーキテクチャ
+- 背景処理: `chrome.alarms` により 1 分周期で全タブを巡回し、`tabActivity` とタイムアウト設定を基に削除判定を行う。
+- 設定 UI: `options.html`/`options.js` と `popup.html`/`popup.js` の双方が `chrome.storage.sync` と同期し、保存ボタン経由で検証・永続化を実施。
+- データ連携: 削除時に `logRemovedTab` でローカルストレージへ履歴を残し、復元 UI (`recentlyRemoved`) と連携する。
+
+## 3. データ/状態
+- `tabActivity` (メモリ): タブ ID → 最終アクティビティ時刻 (ms)。
+- `chrome.storage.sync`: `timeoutMinutes`, `fullCleanupMinutes`, `whitelist` を保持（`fullCleanupMinutes` は分）。
+- `chrome.storage.local`: `recentlyRemoved` 配列を保持し最大 15 件まで保存。
+
+## 4. API / I/O 契約
+- `chrome.storage.sync.get(keys)`: 設定値取得。Why: UI と背景処理で一貫した閾値を参照するため。
+- `chrome.storage.sync.set(values)`: 設定値保存。Why: UI 間で同期し、背景処理の判定基準を更新するため。
+- `chrome.alarms.onAlarm`: 1 分周期の削除判定トリガー。Why: 定期的なタブ整理を自動化しユーザー操作を不要にするため。
+- `chrome.tabs.remove(tabId)`: 判定通過タブの削除。Why: タブ肥大化を抑える主機能を実現するため。
+- `logRemovedTab(tab, reason)`: 削除情報を `recentlyRemoved` に追加。Why: 意図せぬ削除へのリカバリー手段と説明責任を担保するため。
+
+## 5. UX骨子
+- オプション/ポップアップの双方で二段階タイムアウトを説明付きで表示し、保存ボタンで一括適用。
+- `timeoutMinutes` は分、`fullCleanupMinutes` は時間（保存時に分へ変換）とし、単位をラベルで明示する。
+- 保存前にバリデーション結果をアラートで即時提示し、設定ミスを早期に修正できるようにする。
+- 最近削除リストは強制削除を含めて共通表示し、クリック復元が可能。
+
+## 6. セキュリティ・運用
+- 権限: `tabs`, `storage`, `alarms` のみに限定。
+- ログ: 背景スクリプトで削除理由 (`reason`: `timeout` / `fullCleanup` / `unknown`) を含むログを出力し、デバッグと問合せ対応を容易にする。
+- 障害時: ストレージ書き込み失敗時は UI からエラー通知し、削除処理はフェイルセーフで継続。
+
+## 7. 追跡性
+- FS-001 ⇔ FR-001〜FR-014/NFR-001〜006 ⇔ 実装 (`background.js`, `options.js`, `popup.js`) ⇔ テスト（将来追加予定）を対応付ける。
+
+## 8. 変更規約
+- FS 起票 → 本仕様更新 → 実装 → レビューの順で進行する。
+- バージョニングは semver に準拠し、仕様追加時はマイナーバージョンを更新する。

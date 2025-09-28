@@ -8,6 +8,7 @@
             body { font-family: system-ui, sans-serif; line-height: 1.6; padding: 16px; }
             h1 { margin-top: 0; }
             label { display: block; margin: 12px 0; }
+            label small { display: block; color: #666; font-size: 12px; margin-top: 4px; }
             ul { padding-left: 20px; }
             li { margin: 6px 0; }
             .item-row { display: flex; align-items: center; gap: 8px; }
@@ -22,7 +23,12 @@
         <section>
             <label>
                 <!-- 理由: ユーザーがワークフローに合わせ猶予時間を調整できるようにするため -->
-                削除までの放置時間<input type="number" id="timeout" min="1" value="30" />
+                削除までの放置時間（分）<input type="number" id="timeout" min="1" value="30" />
+            </label>
+            <label>
+                <!-- 理由: ホワイトリストに依存せず最終的にタブを整理できる猶予時間を設けるため -->
+                全削除までの最大放置時間（時間）<input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" />
+                <small>ホワイトリスト対象も含め、通常タイムアウトより大きい値を設定してください。</small>
             </label>
             <!-- 理由: 自動保存による意図せぬ変更反映を避けるため明示的に保存する -->
             <button id="save">保存</button>
@@ -48,5 +54,4 @@
 
         <script src="options.js"></script>
     </body>
-    </html>
-
+</html>

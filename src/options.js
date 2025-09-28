@@ -1,6 +1,11 @@
+const MINUTES_PER_HOUR = 60; // 理由: 分↔時間の変換を一元管理し保守性を上げるため
+const DEFAULT_TIMEOUT_MINUTES = 30; // 理由: 既存仕様で定義済みの既定値を明示するため
+const DEFAULT_FULL_CLEANUP_HOURS = 24; // 理由: 全削除タイマーの既定値 (24h=1440min) を分かりやすく保持するため
+
 document.addEventListener("DOMContentLoaded", () => {
     // 理由: 繰り返しDOM探索を避け、操作時のコストを抑えるため
     const timeoutInput = document.getElementById("timeout");
+    const fullCleanupInput = document.getElementById("fullCleanup");
     const saveButton = document.getElementById("save");
     const whitelistInput = document.getElementById("whitelistInput");
     const addWhitelistButton = document.getElementById("addWhitelist");
@@ -9,37 +14,81 @@ document.addEventListener("DOMContentLoaded", () => {
     const clearRemovedBtn = document.getElementById("clearRemoved");
 
     // 理由: 以前の選択を保持し、意図どおりの動作を継続させるため
-    chrome.storage.sync.get(["timeoutMinutes", "whitelist"], (data) => {
-        // 理由: 初期値がないと判断が難しく、既定値を示す必要があるため
-        timeoutInput.value = data.timeoutMinutes || 30;
-        // 理由: 現在の設定内容を可視化し、編集を容易にするため
-        (data.whitelist || []).forEach((url) => addWhitelistItem(url));
-    });
+    chrome.storage.sync.get(
+        ["timeoutMinutes", "fullCleanupMinutes", "whitelist"],
+        (data) => {
+            const normalizedTimeout = normalizeTimeout(
+                data.timeoutMinutes,
+                DEFAULT_TIMEOUT_MINUTES
+            );
+            const normalizedFullCleanupHours = normalizeFullCleanupHours(
+                data.fullCleanupMinutes,
+                normalizedTimeout,
+                DEFAULT_FULL_CLEANUP_HOURS
+            );
+            timeoutInput.value = normalizedTimeout;
+            fullCleanupInput.value = formatHours(normalizedFullCleanupHours);
+
+            // 理由: 現在の設定内容を可視化し、編集を容易にするため
+            (data.whitelist || []).forEach((url) => addWhitelistItem(url));
+        }
+    );
 
     // 理由: 明示的な保存操作により、意図しない変更の反映を防ぐため
     saveButton.addEventListener("click", () => {
-        // 理由: 計算・比較を行いやすいプリミティブ型（数値）で保持するため
-        const timeoutMinutes = parseInt(timeoutInput.value, 10);
-        // 理由: 背景スクリプトからも参照できる共有領域に保存するため
-        chrome.storage.sync.set({ timeoutMinutes });
-        // 理由: ユーザーに保存が成功したことを明確に伝えるため
-        alert("保存しました");
+        const timeoutValue = Number(timeoutInput.value);
+        const fullCleanupHourValue = Number(fullCleanupInput.value);
+
+        // 理由: 数値以外の入力は設定破綻につながるため
+        if (
+            !Number.isFinite(timeoutValue) ||
+            !Number.isFinite(fullCleanupHourValue)
+        ) {
+            alert("数値を入力してください");
+            return;
+        }
+
+        const timeoutMinutes = Math.floor(timeoutValue);
+        const fullCleanupMinutes = Math.floor(
+            fullCleanupHourValue * MINUTES_PER_HOUR
+        );
+
+        // 理由: 無効値を保存すると削除ロジックが破綻するため
+        if (timeoutMinutes < 1 || fullCleanupMinutes < 1) {
+            alert("通常・全削除タイムアウトは1以上で設定してください");
+            return;
+        }
+
+        // 理由: 全削除タイムアウトは最終ラインとして通常タイムアウトより長くあるべきため
+        if (timeoutMinutes >= fullCleanupMinutes) {
+            alert("全削除タイムアウトは通常タイムアウトより大きい必要があります");
+            return;
+        }
+
+        chrome.storage.sync.set(
+            { timeoutMinutes, fullCleanupMinutes },
+            () => {
+                if (chrome.runtime.lastError) {
+                    alert(`保存に失敗しました: ${chrome.runtime.lastError.message}`);
+                    return;
+                }
+                alert("保存しました");
+            }
+        );
     });
 
     // 理由: ユーザーが除外対象を柔軟に拡張できるようにするため
     addWhitelistButton.addEventListener("click", () => {
-        // 理由: 不要な空白が原因の重複・誤登録を防ぐため
-        const url = whitelistInput.value.trim();
-        if (!url) return; // 理由: 空値は意味がなくノイズになるため
-        // 理由: 既存値を保持しつつ追記し、設定の整合性を保つため
+        const url = whitelistInput.value.trim(); // 理由: 不要な空白による誤登録を防ぐため
+        if (!url) return;
+
         chrome.storage.sync.get("whitelist", (data) => {
             const list = data.whitelist || [];
             list.push(url);
-            // 理由: 背景の判定処理と同期させるため
-            chrome.storage.sync.set({ whitelist: list });
-            // 理由: モデルの更新をUIに即時反映し、フィードバックを提供するため
-            addWhitelistItem(url);
-            whitelistInput.value = "";
+            chrome.storage.sync.set({ whitelist: list }, () => {
+                addWhitelistItem(url);
+                whitelistInput.value = "";
+            });
         });
     });
 
@@ -49,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // 理由: プライバシー配慮とリスト肥大化の抑制のため
     clearRemovedBtn.addEventListener("click", async () => {
         await chrome.storage.local.set({ recentlyRemoved: [] });
-        // 理由: データの変更をUIに反映し、状態の一貫性を保つため
         renderRecentlyRemoved();
     });
 
@@ -71,19 +119,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 理由: ストレージの真実の状態と画面表示を一致させるため
     async function renderRecentlyRemoved() {
-        // 理由: 再描画時の重複表示を避け、最新状態だけを出すため
-        recentlyRemovedUl.innerHTML = "";
+        recentlyRemovedUl.innerHTML = ""; // 理由: 再描画時の重複を防ぐため
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
         );
 
-        // 理由: 項目ごとに独立した操作領域を作ることで可用性を高めるため
         recentlyRemoved.forEach((item, index) => {
             const li = document.createElement("li");
             const row = document.createElement("div");
             row.className = "item-row";
 
-            // 理由: タイトル/URLをクリック可能にして復元操作を直感化するため
             const link = document.createElement("span");
             link.className = "url";
             link.textContent = item.title || item.url;
@@ -93,12 +138,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 await restoreItem(index);
             });
 
-            // 理由: 削除時刻を示すことで判断材料（重要度/新しさ）を提供するため
             const time = document.createElement("span");
             time.className = "time";
             time.textContent = formatTime(item.removedAt);
 
-            // 理由: 表示要素とデータの結び付きを保持しつつ組み立てるため
             row.appendChild(link);
             row.appendChild(time);
             li.appendChild(row);
@@ -111,16 +154,49 @@ document.addEventListener("DOMContentLoaded", () => {
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
         );
-        // 理由: 不正インデックスや競合状態での例外を避けるため
         const item = recentlyRemoved[index];
-        if (!item) return;
-        // 理由: 既存タブを壊さず非破壊的に復元するため
+        if (!item) return; // 理由: 不正インデックスや競合状態での例外を避けるため
+
         await chrome.tabs.create({ url: item.url });
-        // 理由: 多重復元を防ぎ、履歴の整合性を保つため
-        recentlyRemoved.splice(index, 1);
+        recentlyRemoved.splice(index, 1); // 理由: 多重復元を防ぎ、履歴の整合性を保つため
         await chrome.storage.local.set({ recentlyRemoved });
-        // 理由: モデルとUIの不一致を残さないため
         renderRecentlyRemoved();
     }
 });
 
+// 理由: タイムアウト入力を分単位に正規化し、最小値を強制するため
+function normalizeTimeout(value, fallback) {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || numberValue < 1) {
+        return fallback;
+    }
+    return Math.floor(numberValue);
+}
+
+// 理由: 分で保存されている全削除タイマーを時間入力向けに正規化するため
+function normalizeFullCleanupHours(valueInMinutes, timeoutMinutes, fallbackHours) {
+    const fallbackMinutes = Math.floor(fallbackHours * MINUTES_PER_HOUR);
+    const numberValue = Number(valueInMinutes);
+    let minutes;
+
+    if (!Number.isFinite(numberValue) || numberValue < 1) {
+        minutes = fallbackMinutes;
+    } else {
+        minutes = Math.floor(numberValue);
+    }
+
+    if (minutes <= timeoutMinutes) {
+        minutes = timeoutMinutes + 1;
+    }
+
+    const hours = minutes / MINUTES_PER_HOUR;
+    return Math.round(hours * 100) / 100;
+}
+
+// 理由: 入力欄へ表示する際に余計な 0 を避けつつ判読性を確保するため
+function formatHours(hours) {
+    if (Number.isInteger(hours)) {
+        return String(hours);
+    }
+    return (Math.round(hours * 100) / 100).toString();
+}

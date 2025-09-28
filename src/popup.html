@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8" />
@@ -9,6 +9,7 @@
             h1 { margin: 0 0 8px; font-size: 18px; }
             h2 { margin: 16px 0 8px; font-size: 14px; }
             label { display: block; margin: 8px 0; font-size: 14px; }
+            label small { display: block; color: #666; font-size: 11px; margin-top: 2px; }
             input[type="number"], input[type="text"] { width: 100%; padding: 6px 8px; box-sizing: border-box; }
             ul { padding-left: 18px; margin: 8px 0; max-height: 180px; overflow-y: auto; }
             li { margin: 6px 0; }
@@ -30,6 +31,12 @@
                 <!-- 理由: ユーザーが自分のワークフローに合わせて削除までの猶予を調整できるようにするため -->
                 削除までの放置時間（分）
                 <input type="number" id="timeout" min="1" value="30" />
+            </label>
+            <label>
+                <!-- 理由: ホワイトリストに依存せず最終ラインの整理タイミングを制御できるようにするため -->
+                全削除までの最大放置時間（時間）
+                <input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" />
+                <small>ホワイトリスト対象も含め、通常タイムアウトより大きい値を設定してください。</small>
             </label>
             <!-- 理由: 自動保存だと意図せぬ変更が反映される恐れがあるため明示的な保存にする -->
             <button id="save">保存</button>
@@ -58,8 +65,4 @@
         <!-- 理由: ポップアップ特有の軽量ロジックを分離し保守性を高めるため -->
         <script src="popup.js"></script>
     </body>
-    </html>
-
-
-
-
+</html>

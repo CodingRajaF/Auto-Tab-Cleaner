@@ -1,7 +1,7 @@
-// ç†ç”±: ã‚¿ãƒ–ã”ã¨ã®æœ€çµ‚ã‚¢ã‚¯ãƒ†ã‚£ãƒ“ãƒ†ã‚£ã‚’è¿½è·¡ã—ã€å‰Šé™¤åˆ¤å®šã®æ ¹æ‹ ã‚’å…±æœ‰ã™ã‚‹ãŸã‚
+// ——R: ƒ^ƒu‚²‚Æ‚ÌÅIƒAƒNƒeƒBƒrƒeƒB‚ğ’ÇÕ‚µAíœ”»’è‚Ìª‹’‚ğ‹¤—L‚·‚é‚½‚ß
 const tabActivity = {};
 
-// ç†ç”±: æ‹¡å¼µèµ·å‹•æ™‚ç‚¹ã®å…¨ã‚¿ãƒ–ã«åŒã˜åŸºæº–æ™‚åˆ»ã‚’ä¸ãˆã€èª¤å·®ã‚’æŠ‘ãˆã‚‹ãŸã‚
+// ——R: Šg’£‹N“®“_‚Ì‘Sƒ^ƒu‚É“¯‚¶Šî€‚ğ—^‚¦AŒë·‚ğ—}‚¦‚é‚½‚ß
 async function seedAllTabs() {
     const tabs = await chrome.tabs.query({});
     const now = Date.now();
@@ -12,12 +12,12 @@ async function seedAllTabs() {
     }
 }
 
-// ç†ç”±: ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆã¸ã®ä¸€è‡´åˆ¤å®šã‚’å…±é€šåŒ–ã—ã€æ¡ä»¶æ¼ã‚Œã‚’é˜²ããŸã‚
+// ——R: ƒzƒƒCƒgƒŠƒXƒg‚Ö‚Ìˆê’v”»’è‚ğ‹¤’Ê‰»‚µAğŒ˜R‚ê‚ğ–h‚®‚½‚ß
 function isWhitelisted(url, list) {
     return (list || []).some((entry) => url?.startsWith(entry));
 }
 
-// ç†ç”±: å‰Šé™¤ç†ç”±ã‚’å«ã‚ã¦å±¥æ­´ã‚’æ®‹ã—ã€å¾©å…ƒæ™‚ã®åˆ¤æ–­ææ–™ã«ã™ã‚‹ãŸã‚
+// ——R: íœ——R‚ğŠÜ‚ß‚Ä—š—ğ‚ğc‚µA•œŒ³‚Ì”»’fŞ—¿‚É‚·‚é‚½‚ß
 async function logRemovedTab(tab, reason = "timeout") {
     try {
         const entry = {
@@ -38,12 +38,17 @@ async function logRemovedTab(tab, reason = "timeout") {
     }
 }
 
-// ç†ç”±: è¨­å®šæœªåˆæœŸåŒ–ã§ã‚‚ç¢ºå®Ÿã«æ—¢å®šå€¤ã‚’åˆ©ç”¨ã§ãã‚‹ã‚ˆã†ä¿è¨¼ã™ã‚‹ãŸã‚
+// ——R: İ’è–¢‰Šú‰»‚Å‚àŠmÀ‚ÉŠù’è’l‚ğ—˜—p‚Å‚«‚é‚æ‚¤•ÛØ‚·‚é‚½‚ß
 async function ensureDefaultSettings() {
-    const defaults = { timeoutMinutes: 30, fullCleanupMinutes: 1440 };
+    const defaults = {
+        timeoutMinutes: 30,
+        fullCleanupMinutes: 1440,
+        fullCleanupEnabled: true,
+    };
     const stored = await chrome.storage.sync.get([
         "timeoutMinutes",
         "fullCleanupMinutes",
+        "fullCleanupEnabled",
     ]);
 
     let timeoutMinutes = Number(stored.timeoutMinutes);
@@ -64,6 +69,8 @@ async function ensureDefaultSettings() {
         fullCleanupMinutes = Math.max(timeoutMinutes + 1, defaults.fullCleanupMinutes);
     }
 
+    const fullCleanupEnabled = stored.fullCleanupEnabled !== false;
+
     const updates = {};
     if (stored.timeoutMinutes !== timeoutMinutes) {
         updates.timeoutMinutes = timeoutMinutes;
@@ -71,13 +78,16 @@ async function ensureDefaultSettings() {
     if (stored.fullCleanupMinutes !== fullCleanupMinutes) {
         updates.fullCleanupMinutes = fullCleanupMinutes;
     }
+    if (stored.fullCleanupEnabled !== fullCleanupEnabled) {
+        updates.fullCleanupEnabled = fullCleanupEnabled;
+    }
 
     if (Object.keys(updates).length > 0) {
         await chrome.storage.sync.set(updates);
     }
 }
 
-// ç†ç”±: åˆ†å˜ä½ã®è¨­å®šã‚’ãã®ã¾ã¾ãƒŸãƒªç§’ã«å¤‰æ›ã—ã€ã‚¼ãƒ­ã‚„è² æ•°ã‚’æ’é™¤ã™ã‚‹ãŸã‚
+// ——R: •ª’PˆÊ‚Ìİ’è‚ğ‚»‚Ì‚Ü‚Üƒ~ƒŠ•b‚É•ÏŠ·‚µAƒ[ƒ‚â•‰”‚ğ”rœ‚·‚é‚½‚ß
 function minutesToMs(minutes) {
     return Math.max(1, minutes) * 60 * 1000;
 }
@@ -96,43 +106,46 @@ chrome.runtime.onStartup.addListener(async () => {
     console.log(new Date(), "Alarm Startup: sweep");
 });
 
-// ç†ç”±: ã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–ç›´å¾Œã®ã‚¿ãƒ–ã‚’æœ€æ–°ã¨ã¿ãªã—ã€èª¤åˆ¤å®šã‚’é¿ã‘ã‚‹ãŸã‚
+// ——R: ƒAƒNƒeƒBƒu‰»’¼Œã‚Ìƒ^ƒu‚ğÅV‚Æ‚İ‚È‚µAŒë”»’è‚ğ”ğ‚¯‚é‚½‚ß
 chrome.tabs.onActivated.addListener(({ tabId }) => {
     tabActivity[tabId] = Date.now();
 });
 
-// ç†ç”±: è¡¨ç¤ºæ›´æ–°æ™‚ã«ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ã‚ã‚Œã°é–²è¦§ä¸­ã¨åˆ¤æ–­ã—çŒ¶äºˆã‚’æ›´æ–°ã™ã‚‹ãŸã‚
+// ——R: •\¦XV‚ÉƒAƒNƒeƒBƒu‚Å‚ ‚ê‚Î‰{——’†‚Æ”»’f‚µ—P—\‚ğXV‚·‚é‚½‚ß
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (tab?.active) {
         tabActivity[tabId] = Date.now();
     }
 });
 
-// ç†ç”±: é–‰ã˜ãŸã‚¿ãƒ–ã®è¨˜éŒ²ã‚’å³æ™‚å‰Šé™¤ã—ã€ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ã‚¯ã‚’é˜²ããŸã‚
+// ——R: •Â‚¶‚½ƒ^ƒu‚Ì‹L˜^‚ğ‘¦íœ‚µAƒƒ‚ƒŠƒŠ[ƒN‚ğ–h‚®‚½‚ß
 chrome.tabs.onRemoved.addListener((tabId) => {
     delete tabActivity[tabId];
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name !== "sweep") {
-        return; // ç†ç”±: ä»–ã‚¢ãƒ©ãƒ¼ãƒ ã¨å‡¦ç†ã‚’æ··åŒã—ãªã„ãŸã‚
+        return; // ——R: ‘¼ƒAƒ‰[ƒ€‚Æˆ—‚ğ¬“¯‚µ‚È‚¢‚½‚ß
     }
 
-    const {
-        timeoutMinutes = 30,
-        fullCleanupMinutes = 1440,
-        whitelist = [],
-    } = await chrome.storage.sync.get([
+    const settings = await chrome.storage.sync.get([
         "timeoutMinutes",
         "fullCleanupMinutes",
+        "fullCleanupEnabled",
         "whitelist",
     ]);
 
-    const normalizedTimeout = Math.max(1, Math.floor(timeoutMinutes));
-    let normalizedFullCleanup = Math.max(1, Math.floor(fullCleanupMinutes));
+    const normalizedTimeout = Math.max(1, Math.floor(settings.timeoutMinutes ?? 30));
+    let normalizedFullCleanup = Math.max(
+        1,
+        Math.floor(settings.fullCleanupMinutes ?? 1440)
+    );
     if (normalizedFullCleanup <= normalizedTimeout) {
         normalizedFullCleanup = normalizedTimeout + 1;
     }
+
+    const fullCleanupEnabled = settings.fullCleanupEnabled !== false;
+    const whitelist = settings.whitelist || [];
 
     const timeoutMs = minutesToMs(normalizedTimeout);
     const fullCleanupMs = minutesToMs(normalizedFullCleanup);
@@ -141,34 +154,23 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) {
-            continue; // ç†ç”±: åˆ¤å®šã«å¿…è¦ãªæƒ…å ±ãŒæ¬ è½ã—ã¦ã„ã‚‹ãŸã‚
+            continue; // ——R: ”»’è‚É•K—v‚Èî•ñ‚ªŒ‡—‚µ‚Ä‚¢‚é‚½‚ß
         }
 
         if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id] = now;
-            continue; // ç†ç”±: ãƒ¦ãƒ¼ã‚¶ãƒ¼æ“ä½œä¸­ã®ã‚¿ãƒ–ã¯å‰Šé™¤å¯¾è±¡å¤–ã¨ã™ã‚‹ãŸã‚
+            continue; // ——R: ƒ†[ƒU[‘€ì’†‚Ìƒ^ƒu‚Ííœ‘ÎÛŠO‚Æ‚·‚é‚½‚ß
         }
 
         const lastActivity = tabActivity[tab.id];
-
-        if (lastActivity === undefined) {
-            try {
-                await logRemovedTab(tab, "unknown");
-                await chrome.tabs.remove(tab.id);
-            } catch (error) {
-                console.warn("Failed to remove tab without activity", tab?.id, error);
-            } finally {
-                delete tabActivity[tab.id];
-            }
-            continue;
-        }
+if (lastActivity === undefined) {\r\n    tabActivity[tab.id] = now; // ——R: ŠÄ‹ŠJn’¼Œã‚Ìƒ^ƒu‚Í‘¦íœ‚¹‚¸Šî€‚ğ—^‚¦‚é‚½‚ß\r\n    continue;\r\n}\r\n
 
         const elapsed = now - lastActivity;
-        const forceRemoval = elapsed >= fullCleanupMs;
+        const forceRemoval = fullCleanupEnabled && elapsed >= fullCleanupMs;
         const whitelisted = isWhitelisted(tab.url, whitelist);
 
         if (!forceRemoval && whitelisted) {
-            continue; // ç†ç”±: é€šå¸¸çŒ¶äºˆå†…ã®ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆã¯å°Šé‡ã™ã‚‹ãŸã‚
+            continue; // ——R: ’Êí—P—\“à‚ÌƒzƒƒCƒgƒŠƒXƒg‚Í‘¸d‚·‚é‚½‚ß
         }
 
         const timeoutExceeded = elapsed >= timeoutMs;
@@ -193,6 +195,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             elapsedMinutes: Math.round(elapsed / 60000),
             timeoutMinutes: normalizedTimeout,
             fullCleanupMinutes: normalizedFullCleanup,
+            fullCleanupEnabled,
             loggedAt: new Date(now).toISOString(),
         });
     }
