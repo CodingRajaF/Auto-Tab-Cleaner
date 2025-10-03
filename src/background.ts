@@ -18,7 +18,7 @@ function isWhitelisted(url, list) {
 }
 
 // 理由: 削除理由を含めて履歴を残し、復元時の判断材料にするため
-async function logRemovedTab(tab, reason = "timeout") {
+async function logRemovedTab(tab: chrome.tabs.Tab, reason = "timeout") {
     try {
         const entry = {
             url: tab.url,

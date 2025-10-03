@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const enabled = normalizeFullCleanupToggle(data.fullCleanupEnabled);
 
             if (timeoutInput) {
-                timeoutInput.value = normalizedTimeout;
+                timeoutInput.value = normalizedTimeout.toString();
             }
             if(fullCleanupInput) {
                 fullCleanupInput.value = formatHours(normalizedFullCleanupHours);
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "recentlyRemoved"
         );
 
-        recentlyRemoved.forEach((item: chrome.tabs.Tab, index: number) => {
+        recentlyRemoved.forEach((item: { url: string; title: string; removedAt: number }, index: number) => {
             const li = document.createElement("li");
             const row = document.createElement("div");
             row.className = "item-row";
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    async function restoreItem(index) {
+    async function restoreItem(index: number) {
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
         );
@@ -203,7 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderRecentlyRemoved();
     }
 
-    function applyFullCleanupState(enabled) {
+    function applyFullCleanupState(enabled: boolean) {
+        if (!fullCleanupInput) return;
         fullCleanupInput.disabled = !enabled;
         fullCleanupInput.title = enabled
             ? ""
@@ -211,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function normalizeTimeout(value, fallback) {
+function normalizeTimeout(value: string, fallback: number): number {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue < 1) {
         return fallback;
@@ -219,7 +220,7 @@ function normalizeTimeout(value, fallback) {
     return Math.floor(numberValue);
 }
 
-function normalizeFullCleanupHours(valueInMinutes, timeoutMinutes, fallbackHours) {
+function normalizeFullCleanupHours(valueInMinutes: string, timeoutMinutes: number, fallbackHours: number): number {
     const fallbackMinutes = Math.floor(fallbackHours * MINUTES_PER_HOUR);
     const numberValue = Number(valueInMinutes);
     let minutes;
@@ -238,11 +239,11 @@ function normalizeFullCleanupHours(valueInMinutes, timeoutMinutes, fallbackHours
     return Math.round(hours * 100) / 100;
 }
 
-function normalizeFullCleanupToggle(value) {
+function normalizeFullCleanupToggle(value: boolean): boolean {
     return value !== false; // 理由: 既存ユーザーへはデフォルトONを維持するため
 }
 
-function formatHours(hours) {
+function formatHours(hours: number): string {
     if (Number.isInteger(hours)) {
         return String(hours);
     }
