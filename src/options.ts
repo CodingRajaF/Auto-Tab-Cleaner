@@ -4,9 +4,9 @@ const DEFAULT_FULL_CLEANUP_HOURS = 24; // 理由: 全削除タイマーの既定
 
 document.addEventListener("DOMContentLoaded", () => {
     // 理由: 繰り返しDOM探索を避け、操作時のコストを抑えるため
-    const timeoutInput = document.getElementById("timeout");
-    const fullCleanupInput = document.getElementById("fullCleanup");
-    const fullCleanupToggle = document.getElementById("fullCleanupToggle");
+    const timeoutInput = document.querySelector<HTMLInputElement>("timeout");
+    const fullCleanupInput = document.querySelector<HTMLInputElement>("fullCleanup");
+    const fullCleanupToggle = document.querySelector<HTMLInputElement>("#fullCleanupToggle");
     const saveButton = document.getElementById("save");
     const whitelistInput = document.getElementById("whitelistInput");
     const addWhitelistButton = document.getElementById("addWhitelist");
@@ -33,9 +33,15 @@ document.addEventListener("DOMContentLoaded", () => {
             );
             const enabled = normalizeFullCleanupToggle(data.fullCleanupEnabled);
 
-            timeoutInput.value = normalizedTimeout;
-            fullCleanupInput.value = formatHours(normalizedFullCleanupHours);
-            fullCleanupToggle.checked = enabled;
+            if (timeoutInput) {
+                timeoutInput.value = normalizedTimeout;
+            }
+            if(fullCleanupInput) {
+                fullCleanupInput.value = formatHours(normalizedFullCleanupHours);
+            }
+            if (fullCleanupToggle) {
+                fullCleanupToggle.checked = enabled;
+            }
             cachedFullCleanupMinutes = normalizedFullCleanupMinutes;
             applyFullCleanupState(enabled);
 
@@ -43,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
-    fullCleanupToggle.addEventListener("change", () => {
+    fullCleanupToggle?.addEventListener("change", () => {
         const enabled = fullCleanupToggle.checked;
         applyFullCleanupState(enabled);
     });
