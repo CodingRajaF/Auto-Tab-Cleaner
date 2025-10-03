@@ -4,15 +4,15 @@ const DEFAULT_FULL_CLEANUP_HOURS = 24; // 理由: 全削除タイマーの既定
 
 document.addEventListener("DOMContentLoaded", () => {
     // 理由: 繰り返しDOM探索を避け、操作時のコストを抑えるため
-    const timeoutInput = document.querySelector<HTMLInputElement>("timeout");
-    const fullCleanupInput = document.querySelector<HTMLInputElement>("fullCleanup");
+    const timeoutInput= document.querySelector<HTMLInputElement>("#timeout");
+    const fullCleanupInput = document.querySelector<HTMLInputElement>("#fullCleanup");
     const fullCleanupToggle = document.querySelector<HTMLInputElement>("#fullCleanupToggle");
-    const saveButton = document.getElementById("save");
-    const whitelistInput = document.getElementById("whitelistInput");
-    const addWhitelistButton = document.getElementById("addWhitelist");
-    const whitelistUl = document.getElementById("whitelist");
-    const recentlyRemovedUl = document.getElementById("recentlyRemoved");
-    const clearRemovedBtn = document.getElementById("clearRemoved");
+    const saveButton = document.querySelector<HTMLButtonElement>("#save");
+    const whitelistInput = document.querySelector<HTMLInputElement>("#whitelistInput");
+    const addWhitelistButton = document.querySelector<HTMLButtonElement>("#addWhitelist");
+    const whitelistUl = document.querySelector<HTMLUListElement>("#whitelist");
+    const recentlyRemovedUl = document.querySelector<HTMLUListElement>("#recentlyRemoved");
+    const clearRemovedBtn = document.querySelector<HTMLButtonElement>("#clearRemoved");
 
     let cachedFullCleanupMinutes = DEFAULT_FULL_CLEANUP_HOURS * MINUTES_PER_HOUR; // 理由: トグルOFF時に直近の設定値を保持するため
 
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
             cachedFullCleanupMinutes = normalizedFullCleanupMinutes;
             applyFullCleanupState(enabled);
 
-            (data.whitelist || []).forEach((url) => addWhitelistItem(url));
+            (data.whitelist || []).forEach((url:string) => addWhitelistItem(url));
         }
     );
 
@@ -54,7 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
         applyFullCleanupState(enabled);
     });
 
-    saveButton.addEventListener("click", () => {
+    saveButton?.addEventListener("click", () => {
+        if (!timeoutInput || !fullCleanupInput || !fullCleanupToggle){
+            alert("内部エラー: 入力要素が見つかりません");
+            return;
+        }
         const timeoutValue = Number(timeoutInput.value);
         const fullCleanupHourValue = Number(fullCleanupInput.value);
         const fullCleanupEnabled = fullCleanupToggle.checked;
@@ -112,7 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    addWhitelistButton.addEventListener("click", () => {
+    addWhitelistButton?.addEventListener("click", () => {
+        if (!whitelistInput || !whitelistUl) {
+            alert("内部エラー: whitelistInputまたはwhitelistUlが見つかりません");
+            return;
+        }
         const url = whitelistInput.value.trim(); // 理由: 不要な空白が原因の重複・誤登録を防ぐため
         if (!url) return;
 
@@ -128,18 +136,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderRecentlyRemoved(); // 理由: 自動削除の結果を可視化し、誤操作からの復旧経路を用意するため
 
-    clearRemovedBtn.addEventListener("click", async () => {
+    clearRemovedBtn?.addEventListener("click", async () => {
         await chrome.storage.local.set({ recentlyRemoved: [] });
         renderRecentlyRemoved();
     });
 
-    function addWhitelistItem(url) {
+    function addWhitelistItem(url:string) {
         const li = document.createElement("li");
         li.textContent = url;
-        whitelistUl.appendChild(li);
+        whitelistUl?.appendChild(li);
     }
 
-    function formatTime(ts) {
+    function formatTime(ts: string | number | Date) {
         try {
             return new Date(ts).toLocaleString();
         } catch (_) {
@@ -148,20 +156,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function renderRecentlyRemoved() {
+        if (!recentlyRemovedUl) {
+            alert("内部エラー: recentlyRemovedUlが見つかりません");
+            return;
+        }
         recentlyRemovedUl.innerHTML = ""; // 理由: 再描画時の重複表示やゴースト要素を防ぐため
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"
         );
 
-        recentlyRemoved.forEach((item, index) => {
+        recentlyRemoved.forEach((item: chrome.tabs.Tab, index: number) => {
             const li = document.createElement("li");
             const row = document.createElement("div");
             row.className = "item-row";
 
             const link = document.createElement("span");
             link.className = "url";
-            link.textContent = item.title || item.url;
-            link.title = item.url;
+            link.textContent = item.title || item.url ?? "";
+            link.title = item.url ?? "";
             link.addEventListener("click", async (e) => {
                 e.preventDefault();
                 await restoreItem(index);
