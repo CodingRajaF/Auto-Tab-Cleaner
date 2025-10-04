@@ -9,7 +9,7 @@
         "alarms"
     ],
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "../dist/background.js"
     },
     "options_page": "options.html",
     "action": {
