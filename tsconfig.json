@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+  "module": "ESNext",
+  "moduleResolution": "bundler",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node", "chrome"],
+    "strict": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "jsx": "react-jsx",
+    // 新しめオプションは一旦OFF
+    // "verbatimModuleSyntax": true,
+    // "noUncheckedSideEffectImports": true,
+    // "moduleDetection": "force",
+    // "noUncheckedIndexedAccess": true,
+    // "exactOptionalPropertyTypes": true,
+    "isolatedModules": true
+  }
+}

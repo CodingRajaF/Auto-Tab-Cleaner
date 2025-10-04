@@ -1,0 +1,29 @@
+{
+  "name": "auto-tab-cleaner",
+  "version": "1.0.0",
+  "description": "English | [日本語](docs/lang/README_JA.md)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodingRajaF/Auto-Tab-Cleaner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodingRajaF/Auto-Tab-Cleaner/issues"
+  },
+  "homepage": "https://github.com/CodingRajaF/Auto-Tab-Cleaner#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.1.21",
+    "@types/node": "^24.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
