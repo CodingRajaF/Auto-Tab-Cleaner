@@ -203,7 +203,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             await logRemovedTab(tab, reason);
             await chrome.tabs.remove(tab.id);
         } catch (error) {
-            console.warn(`Failed to remove tab\n  tabTitle: ${tab.title}\n  reason: ${reason}\n  error: ${error}`);
+            console.warn(`Failed to remove tab\n  tabTitle: ${tab?.title}\n  reason: ${reason}\n  error: ${error}`);
             continue;
         }
 
