@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
 const tabActivity = {};
 // 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
