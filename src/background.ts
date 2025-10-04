@@ -1,5 +1,5 @@
 ﻿// 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
-const tabActivity = {};
+const tabActivity:Record<number,number> = {};
 
 // 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
 async function seedAllTabs() {
@@ -13,7 +13,7 @@ async function seedAllTabs() {
 }
 
 // 理由: ホワイトリストへの一致判定を共通化し、条件漏れを防ぐため
-function isWhitelisted(url, list) {
+function isWhitelisted(url:string, list: string[]): boolean {
     return (list || []).some((entry) => url?.startsWith(entry));
 }
 
@@ -71,7 +71,12 @@ async function ensureDefaultSettings() {
 
     const fullCleanupEnabled = stored.fullCleanupEnabled !== false;
 
-    const updates = {};
+    interface Updates {
+        timeoutMinutes?: number;
+        fullCleanupMinutes?: number;
+        fullCleanupEnabled?: boolean;
+    }
+    const updates: Updates = {};
     if (stored.timeoutMinutes !== timeoutMinutes) {
         updates.timeoutMinutes = timeoutMinutes;
     }
@@ -88,7 +93,7 @@ async function ensureDefaultSettings() {
 }
 
 // 理由: 分単位の設定をそのままミリ秒に変換し、ゼロや負数を排除するため
-function minutesToMs(minutes) {
+function minutesToMs(minutes: number): number {
     return Math.max(1, minutes) * 60 * 1000;
 }
 
