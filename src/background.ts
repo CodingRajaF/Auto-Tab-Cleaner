@@ -168,7 +168,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-    console.log(new Date(), "Alarm 発動:", alarm.name);
+    console.log(new Date(), "Alarm Triggered:", alarm.name);
     if (alarm.name !== "sweep") {
         return; // 理由: 他アラームと処理を混同しないため
     }
@@ -202,13 +202,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) {
-            console.warn(`Skipping invalid tab\n  tabTitle: ${tab?.title || tab?.url}`);
+            console.warn(`Skipping invalid tab\n  tabTitle: ${tab?.title || tab?.url || "invalid tab"}`);
             continue; // 理由: 判定に必要な情報が欠落しているため
         }
 
         if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id] = now;
-            await saveTabActivity();
             console.log(`Skipping active/audible/pinned tab\n  tabTitle: ${tab.title || tab.url}`);
             continue; // 理由: ユーザー操作中のタブは削除対象外とするため
         }
@@ -218,7 +217,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (lastActivity === undefined) {
             try {
                 tabActivity[tab.id] = now;
-                await saveTabActivity();
                 console.log(`Seeding tab activity\n  tabTitle: ${tab.title || tab.url}`);
                 continue;
             } catch (error) {
@@ -229,12 +227,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         const elapsed = now - lastActivity;
         const forceRemoval = fullCleanupEnabled && elapsed >= fullCleanupMs;
-        const whitelisted = isWhitelisted(tab.url, whitelist);
-
-        if (!forceRemoval && whitelisted) {
-            console.log(`Skipping whitelisted tab\n  tabTitle: ${tab.title || tab.url}`);
-            continue; // 理由: 通常猶予内のホワイトリストは尊重するため
-        }
+        // forceRemoval（全体クリーンアップ時）はホワイトリストを無視して削除します（仕様通り）。
+                const whitelisted = isWhitelisted(tab.url, whitelist);
+        
+                if (!forceRemoval && whitelisted) {
+                    console.log(`Skipping whitelisted tab\n  tabTitle: ${tab.title || tab.url}`);
+                    continue; // 理由: 通常猶予内のホワイトリストは尊重するため
+                }
 
         const timeoutExceeded = elapsed >= timeoutMs;
         if (!forceRemoval && !timeoutExceeded) {
@@ -252,7 +251,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         }
 
         delete tabActivity[tab.id];
-        await saveTabActivity();
         console.log(`[tab cleanup]\n  reason: ${reason}\n  tabId: ${tab.id}\n  url: ${tab.url}\n  elapsedMinutes: ${Math.round(elapsed / 60000)}\n  timeoutMinutes: ${normalizedTimeout}\n  fullCleanupMinutes: ${normalizedFullCleanup}\n  fullCleanupEnabled: ${fullCleanupEnabled}\n  loggedAt: ${new Date(now).toISOString()}`);
     }
+    await saveTabActivity(); // 理由: 変更後の状態を永続化するため
 });
