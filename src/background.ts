@@ -1,6 +1,32 @@
 ﻿// 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
-const tabActivity:Record<number,number> = {};
+// 理由: タブごとの最終アクティビティを永続化し、再起動後も削除ロジックを継続するため
+let tabActivity: Record<number, number> = {};
 
+// 理由: tabActivityをchrome.storage.localに保存する共通関数
+async function saveTabActivity() {
+    try {
+        await chrome.storage.local.set({ tabActivity });
+    } catch (e) {
+        console.warn('Failed to save tabActivity', e);
+    }
+}
+
+// 理由: chrome.storage.localからtabActivityを復元する共通関数
+async function loadTabActivity() {
+    try {
+        const data = await chrome.storage.local.get('tabActivity');
+        if (data.tabActivity && typeof data.tabActivity === 'object') {
+            tabActivity = data.tabActivity;
+        } else {
+            tabActivity = {};
+        }
+    } catch (e) {
+        tabActivity = {};
+        console.warn('Failed to load tabActivity', e);
+    }
+}
+
+// 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
 // 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
 async function seedAllTabs() {
     const tabs = await chrome.tabs.query({});
@@ -10,6 +36,7 @@ async function seedAllTabs() {
             tabActivity[t.id] = now;
         }
     }
+    await saveTabActivity(); // 理由: 初期化時も永続化するため
 }
 
 // 理由: ホワイトリストへの一致判定を共通化し、条件漏れを防ぐため
@@ -99,6 +126,7 @@ function minutesToMs(minutes: number): number {
 
 chrome.runtime.onInstalled.addListener(async () => {
     await ensureDefaultSettings();
+    await loadTabActivity(); // 理由: 起動時に永続化データを復元するため
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
     console.log(new Date(), "Alarm Installed: sweep");
@@ -106,33 +134,47 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onStartup.addListener(async () => {
     await ensureDefaultSettings();
+    await loadTabActivity(); // 理由: 起動時に永続化データを復元するため
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
     console.log(new Date(), "Alarm Startup: sweep");
 });
 
 // 理由: アクティブ化直後のタブを最新とみなし、誤判定を避けるため
-chrome.tabs.onActivated.addListener(({ tabId }) => {
+
+// 理由: アクティブ化直後のタブを最新とみなし、誤判定を避けるため
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     tabActivity[tabId] = Date.now();
+    await saveTabActivity(); // 理由: 状態変化ごとに即時保存するため
 });
 
 // 理由: 表示更新時にアクティブであれば閲覧中と判断し猶予を更新するため
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+
+// 理由: 表示更新時にアクティブであれば閲覧中と判断し猶予を更新するため
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (tab?.active) {
         tabActivity[tabId] = Date.now();
+        await saveTabActivity(); // 理由: 状態変化ごとに即時保存するため
     }
 });
 
 // 理由: 閉じたタブの記録を即時削除し、メモリリークを防ぐため
-chrome.tabs.onRemoved.addListener((tabId) => {
+
+// 理由: 閉じたタブの記録を即時削除し、メモリリークと永続データ残りを防ぐため
+chrome.tabs.onRemoved.addListener(async (tabId) => {
     delete tabActivity[tabId];
+    await saveTabActivity(); // 理由: 削除時も即時保存するため
 });
 
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-    console.log(new Date(), "Alarm 発動:", alarm.name);
+    console.log(new Date(), "Alarm Triggered:", alarm.name);
     if (alarm.name !== "sweep") {
         return; // 理由: 他アラームと処理を混同しないため
     }
+
+    // 理由: アラーム発火時も最新の永続化データを参照するため
+    await loadTabActivity();
 
     const settings = await chrome.storage.sync.get([
         "timeoutMinutes",
@@ -160,7 +202,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) {
-            console.warn(`Skipping invalid tab\n  tabTitle: ${tab?.title || tab?.url}`);
+            console.warn(`Skipping invalid tab\n  tabTitle: ${tab?.title || tab?.url || "invalid tab"}`);
             continue; // 理由: 判定に必要な情報が欠落しているため
         }
 
@@ -185,12 +227,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         const elapsed = now - lastActivity;
         const forceRemoval = fullCleanupEnabled && elapsed >= fullCleanupMs;
-        const whitelisted = isWhitelisted(tab.url, whitelist);
-
-        if (!forceRemoval && whitelisted) {
-            console.log(`Skipping whitelisted tab\n  tabTitle: ${tab.title || tab.url}`);
-            continue; // 理由: 通常猶予内のホワイトリストは尊重するため
-        }
+        // forceRemoval（全体クリーンアップ時）はホワイトリストを無視して削除します（仕様通り）。
+                const whitelisted = isWhitelisted(tab.url, whitelist);
+        
+                if (!forceRemoval && whitelisted) {
+                    console.log(`Skipping whitelisted tab\n  tabTitle: ${tab.title || tab.url}`);
+                    continue; // 理由: 通常猶予内のホワイトリストは尊重するため
+                }
 
         const timeoutExceeded = elapsed >= timeoutMs;
         if (!forceRemoval && !timeoutExceeded) {
@@ -210,4 +253,5 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         delete tabActivity[tab.id];
         console.log(`[tab cleanup]\n  reason: ${reason}\n  tabId: ${tab.id}\n  url: ${tab.url}\n  elapsedMinutes: ${Math.round(elapsed / 60000)}\n  timeoutMinutes: ${normalizedTimeout}\n  fullCleanupMinutes: ${normalizedFullCleanup}\n  fullCleanupEnabled: ${fullCleanupEnabled}\n  loggedAt: ${new Date(now).toISOString()}`);
     }
+    await saveTabActivity(); // 理由: 変更後の状態を永続化するため
 });
