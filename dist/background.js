@@ -132,23 +132,23 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) {
-            console.warn("Skipping invalid tab", { tabId: tab?.id }, { url: tab?.url });
+            console.warn(`Skipping invalid tab\n  tabTitle: ${tab?.title || tab?.url}`);
             continue; // 理由: 判定に必要な情報が欠落しているため
         }
         if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id] = now;
-            console.log("Skipping active/audible/pinned tab", { tabId: tab.id }, { url: tab.url });
+            console.log(`Skipping active/audible/pinned tab\n  tabTitle: ${tab.title || tab.url}`);
             continue; // 理由: ユーザー操作中のタブは削除対象外とするため
         }
         const lastActivity = tabActivity[tab.id];
         if (lastActivity === undefined) {
             try {
                 tabActivity[tab.id] = now;
-                console.log("Seeding tab activity", { tabId: tab.id });
+                console.log(`Seeding tab activity\n  tabTitle: ${tab.title || tab.url}`);
                 continue;
             }
             catch (error) {
-                console.warn("Failed to seed tab activity", { tabId: tab?.id }, error);
+                console.warn(`Failed to seed tab activity\n  tabTitle: ${tab.title || tab.url}\n  error: ${error}`);
                 continue;
             }
         }
@@ -156,11 +156,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         const forceRemoval = fullCleanupEnabled && elapsed >= fullCleanupMs;
         const whitelisted = isWhitelisted(tab.url, whitelist);
         if (!forceRemoval && whitelisted) {
-            console.log("Skipping whitelisted tab", { tabId: tab.id, url: tab.url });
+            console.log(`Skipping whitelisted tab\n  tabTitle: ${tab.title || tab.url}`);
             continue; // 理由: 通常猶予内のホワイトリストは尊重するため
         }
         const timeoutExceeded = elapsed >= timeoutMs;
         if (!forceRemoval && !timeoutExceeded) {
+            console.log(`Skipping tab\n  tabTitle: ${tab.title || tab.url}\n  elapsedMinutes: ${Math.round(elapsed / 60000)}\n  timeoutMinutes: ${normalizedTimeout}`);
             continue;
         }
         const reason = forceRemoval ? "fullCleanup" : "timeout";
@@ -169,20 +170,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             await chrome.tabs.remove(tab.id);
         }
         catch (error) {
-            console.warn("Failed to remove tab", { tabId: tab?.id, reason }, error);
+            console.warn(`Failed to remove tab\n  tabTitle: ${tab.title}\n  reason: ${reason}\n  error: ${error}`);
             continue;
         }
         delete tabActivity[tab.id];
-        console.log("[tab cleanup]", {
-            reason,
-            tabId: tab.id,
-            url: tab.url,
-            elapsedMinutes: Math.round(elapsed / 60000),
-            timeoutMinutes: normalizedTimeout,
-            fullCleanupMinutes: normalizedFullCleanup,
-            fullCleanupEnabled,
-            loggedAt: new Date(now).toISOString(),
-        });
+        console.log(`[tab cleanup]\n  reason: ${reason}\n  tabId: ${tab.id}\n  url: ${tab.url}\n  elapsedMinutes: ${Math.round(elapsed / 60000)}\n  timeoutMinutes: ${normalizedTimeout}\n  fullCleanupMinutes: ${normalizedFullCleanup}\n  fullCleanupEnabled: ${fullCleanupEnabled}\n  loggedAt: ${new Date(now).toISOString()}`);
     }
 });
 //# sourceMappingURL=background.js.map
