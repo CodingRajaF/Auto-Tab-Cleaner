@@ -1,6 +1,32 @@
 ﻿// 理由: タブごとの最終アクティビティを追跡し、削除判定の根拠を共有するため
-const tabActivity:Record<number,number> = {};
+// 理由: タブごとの最終アクティビティを永続化し、再起動後も削除ロジックを継続するため
+let tabActivity: Record<number, number> = {};
 
+// 理由: tabActivityをchrome.storage.localに保存する共通関数
+async function saveTabActivity() {
+    try {
+        await chrome.storage.local.set({ tabActivity });
+    } catch (e) {
+        console.warn('Failed to save tabActivity', e);
+    }
+}
+
+// 理由: chrome.storage.localからtabActivityを復元する共通関数
+async function loadTabActivity() {
+    try {
+        const data = await chrome.storage.local.get('tabActivity');
+        if (data.tabActivity && typeof data.tabActivity === 'object') {
+            tabActivity = data.tabActivity;
+        } else {
+            tabActivity = {};
+        }
+    } catch (e) {
+        tabActivity = {};
+        console.warn('Failed to load tabActivity', e);
+    }
+}
+
+// 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
 // 理由: 拡張起動時点の全タブに同じ基準時刻を与え、誤差を抑えるため
 async function seedAllTabs() {
     const tabs = await chrome.tabs.query({});
@@ -10,6 +36,7 @@ async function seedAllTabs() {
             tabActivity[t.id] = now;
         }
     }
+    await saveTabActivity(); // 理由: 初期化時も永続化するため
 }
 
 // 理由: ホワイトリストへの一致判定を共通化し、条件漏れを防ぐため
@@ -99,6 +126,7 @@ function minutesToMs(minutes: number): number {
 
 chrome.runtime.onInstalled.addListener(async () => {
     await ensureDefaultSettings();
+    await loadTabActivity(); // 理由: 起動時に永続化データを復元するため
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
     console.log(new Date(), "Alarm Installed: sweep");
@@ -106,33 +134,47 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onStartup.addListener(async () => {
     await ensureDefaultSettings();
+    await loadTabActivity(); // 理由: 起動時に永続化データを復元するため
     await seedAllTabs();
     chrome.alarms.create("sweep", { periodInMinutes: 1 });
     console.log(new Date(), "Alarm Startup: sweep");
 });
 
 // 理由: アクティブ化直後のタブを最新とみなし、誤判定を避けるため
-chrome.tabs.onActivated.addListener(({ tabId }) => {
+
+// 理由: アクティブ化直後のタブを最新とみなし、誤判定を避けるため
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     tabActivity[tabId] = Date.now();
+    await saveTabActivity(); // 理由: 状態変化ごとに即時保存するため
 });
 
 // 理由: 表示更新時にアクティブであれば閲覧中と判断し猶予を更新するため
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+
+// 理由: 表示更新時にアクティブであれば閲覧中と判断し猶予を更新するため
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (tab?.active) {
         tabActivity[tabId] = Date.now();
+        await saveTabActivity(); // 理由: 状態変化ごとに即時保存するため
     }
 });
 
 // 理由: 閉じたタブの記録を即時削除し、メモリリークを防ぐため
-chrome.tabs.onRemoved.addListener((tabId) => {
+
+// 理由: 閉じたタブの記録を即時削除し、メモリリークと永続データ残りを防ぐため
+chrome.tabs.onRemoved.addListener(async (tabId) => {
     delete tabActivity[tabId];
+    await saveTabActivity(); // 理由: 削除時も即時保存するため
 });
+
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     console.log(new Date(), "Alarm 発動:", alarm.name);
     if (alarm.name !== "sweep") {
         return; // 理由: 他アラームと処理を混同しないため
     }
+
+    // 理由: アラーム発火時も最新の永続化データを参照するため
+    await loadTabActivity();
 
     const settings = await chrome.storage.sync.get([
         "timeoutMinutes",
@@ -166,6 +208,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id] = now;
+            await saveTabActivity();
             console.log(`Skipping active/audible/pinned tab\n  tabTitle: ${tab.title || tab.url}`);
             continue; // 理由: ユーザー操作中のタブは削除対象外とするため
         }
@@ -175,6 +218,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (lastActivity === undefined) {
             try {
                 tabActivity[tab.id] = now;
+                await saveTabActivity();
                 console.log(`Seeding tab activity\n  tabTitle: ${tab.title || tab.url}`);
                 continue;
             } catch (error) {
@@ -208,6 +252,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         }
 
         delete tabActivity[tab.id];
+        await saveTabActivity();
         console.log(`[tab cleanup]\n  reason: ${reason}\n  tabId: ${tab.id}\n  url: ${tab.url}\n  elapsedMinutes: ${Math.round(elapsed / 60000)}\n  timeoutMinutes: ${normalizedTimeout}\n  fullCleanupMinutes: ${normalizedFullCleanup}\n  fullCleanupEnabled: ${fullCleanupEnabled}\n  loggedAt: ${new Date(now).toISOString()}`);
     }
 });
