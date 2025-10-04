@@ -129,6 +129,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+    console.log(new Date(), "Alarm 発動:", alarm.name);
     if (alarm.name !== "sweep") {
         return; // 理由: 他アラームと処理を混同しないため
     }
@@ -159,11 +160,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     for (const tab of tabs) {
         if (!tab || !tab.id || !tab.url) {
+            console.warn("Skipping invalid tab", { tabId: tab?.id }, { url: tab?.url });
             continue; // 理由: 判定に必要な情報が欠落しているため
         }
 
         if (tab.active || tab.audible || tab.pinned) {
             tabActivity[tab.id] = now;
+            console.log("Skipping active/audible/pinned tab", { tabId: tab.id }, { url: tab.url });
             continue; // 理由: ユーザー操作中のタブは削除対象外とするため
         }
 
@@ -172,7 +175,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (lastActivity === undefined) {
             try {
                 tabActivity[tab.id] = now;
-            continue;
+                console.log("Seeding tab activity", { tabId: tab.id });
+                continue;
             } catch (error) {
                 console.warn("Failed to seed tab activity", { tabId: tab?.id }, error);
                 continue;
@@ -184,6 +188,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         const whitelisted = isWhitelisted(tab.url, whitelist);
 
         if (!forceRemoval && whitelisted) {
+            console.log("Skipping whitelisted tab", { tabId: tab.id, url: tab.url });
             continue; // 理由: 通常猶予内のホワイトリストは尊重するため
         }
 
