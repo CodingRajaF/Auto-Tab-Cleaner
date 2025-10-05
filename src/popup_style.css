@@ -1,0 +1,138 @@
+/* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
+body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 12px;
+    width: 360px;
+    box-sizing: border-box;
+    background-color:#666;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#header {
+    text-align: center;
+    display: flex;
+    align-items: center; /* 縦方向の中央揃え */
+    gap: 8px;           /* アイコンとテキストの間に余白 */
+}
+
+.frame{
+    width: 90%;
+    padding: 5%;
+    height: 25%;
+    border: none;
+    background-color: #f5f5f5;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+h2 {
+    margin: 16px 0 8px;
+    font-size: 14px;
+}
+
+label {
+    display: block;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+label small {
+    display: block;
+    color: #666;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+input[type="checkbox"] {
+    transform: scale(1.1);
+}
+
+input[type="number"],
+input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    box-sizing: border-box;
+}
+
+input:disabled {
+    background: #f5f5f5;
+    color: #777;
+}
+
+ul {
+    padding-left: 18px;
+    margin: 8px 0;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+li {
+    margin: 6px 0;
+}
+
+.item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.url {
+    color: #0366d6;
+    text-decoration: underline;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.time {
+    color: #666;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+button {
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+}
+
+.row>* {
+    flex: 1;
+}
+
+.delete-whitelist {
+    border: none;
+    background: transparent;
+    color: #d32f2f;
+    padding: 2px 6px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.delete-whitelist:hover {
+    color: #b71c1c;
+}
