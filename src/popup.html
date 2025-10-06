@@ -6,63 +6,62 @@
         <link rel="stylesheet" href="popup_style.css" />
     </head>
     <body>
-        <section class="frame" id="header">
-            <img src="icons/icon32.png" alt="Auto Tab Cleaner Icon" />
+        <section class="tile" id="header">
+            <img src="icons/icon48.png" alt="Auto Tab Cleaner Icon" />
             
-            <div>
+            <div class="title">
                 <h1>Auto Tab Cleaner</h1>
-                <h2>Tidy Tabs,Clear Mind</h2>
+                <small>Tidy Tabs, Clear Mind</small>
             </div>
 
         </section>
 
-        <section class="frame">
+        <section class="tile" id="settings">
             
-        </section>
-        <section class="frame">
-
-        </section>
-
-        <section>
-            <label>
-                <!-- 理由: ユーザーが自分のワークフローに合わせて削除までの猶予を調整できるようにするため -->
-                削除までの放置時間（分）
-                <input type="number" id="timeout" min="1" value="30" />
-            </label>
-            <label class="toggle">
-                <!-- 理由: 全削除タイマーを任意で停止できるようにするため -->
-                <input type="checkbox" id="fullCleanupToggle" checked />全削除タイマーを有効にする
-            </label>
-            <label>
-                <!-- 理由: ホワイトリストに依存せず最終ラインの整理タイミングを制御できるようにするため -->
-                全削除までの最大放置時間（時間）
-                <input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" />
-                <small>ホワイトリスト対象も含め、通常タイムアウトより大きい値を設定してください。</small>
-            </label>
-            <!-- 理由: 自動保存だと意図せぬ変更が反映される恐れがあるため明示的な保存にする -->
-            <button id="save">保存</button>
-        </section>
-
-        <section>
-            <h2>ホワイトリスト</h2>
             <div class="row">
-                <!-- 理由: 除外対象をURLで指定できれば予期しないタブのクローズを防げるため -->
-                <input type="text" id="whitelistInput" placeholder="例: https://example.com" />
-                <!-- 理由: 入力確定の明確なトリガーを提供して誤入力の反映を防ぐため -->
-                <button id="addWhitelist">追加</button>
+                <p class="policy-label">Policy</p>
+                <button id="closeNow">Close Now</button>
+                <button id="sortNow">Sort Now</button>
             </div>
-            <!-- 理由: 設定の可視性を確保し、誤登録の発見や整理を容易にするため -->
-            <ul id="whitelist"></ul>
+            <div>
+                <label>
+                    <!-- 理由: ユーザーが自分のワークフローに合わせて削除までの猶予を調整できるようにするため -->
+                    Cloase idle tabs after:
+                    <input type="number" id="timeout" min="1" value="30" />
+                </label>
+                <label class="toggle">
+                    <!-- 理由: 全削除タイマーを任意で停止できるようにするため -->
+                    <input type="checkbox" id="fullCleanupToggle" checked />
+                </label>
+                <label>
+                    <!-- 理由: ホワイトリストに依存せず最終ラインの整理タイミングを制御できるようにするため -->
+                    Close all tabs after:
+                    <input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" />
+                </label>
+                <!-- 理由: 自動保存だと意図せぬ変更が反映される恐れがあるため明示的な保存にする -->
+                <button id="save">Save</button>
+            </div>
         </section>
-
-        <section>
-            <h2>最近削除したタブ</h2>
-            <!-- 理由: 履歴が不要になった際に痕跡を残さない選択肢を提供するため -->
-            <button id="clearRemoved">履歴をクリア</button>
-            <!-- 理由: 誤って閉じた場合に即時復元できる導線を提供するため -->
-            <ul id="recentlyRemoved"></ul>
+        <section class="tile" id="management">
+            <div>
+                <h2>Whitelist</h2>
+                <div class="row">
+                    <!-- 理由: 除外対象をURLで指定できれば予期しないタブのクローズを防げるため -->
+                    <input type="text" id="whitelistInput" placeholder="例：https://example.com" />
+                    <!-- 理由: 入力確定の明確なトリガーを提供して誤入力の反映を防ぐため -->
+                    <button id="addWhitelist">追加</button>
+                </div>
+                <!-- 理由: 設定の可視性を確保し、誤登録の発見や整理を容易にするため -->
+                <ul id="whitelist"></ul>
+            </div>
+            <div>
+                <h2>Tab history</h2>
+                <!-- 理由: 履歴が不要になった際に痕跡を残さない選択肢を提供するため -->
+                <button id="clearRemoved">履歴をクリア</button>
+                <!-- 理由: 誤って閉じた場合に即時復元できる導線を提供するため -->
+                <ul id="recentlyRemoved"></ul>
+            </div>
         </section>
-
         <!-- 理由: ポップアップ特有の軽量ロジックを分離し保守性を高めるため -->
         <script src="../dist/popup.js"></script>
     </body>

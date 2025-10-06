@@ -1,41 +1,80 @@
 /* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
+html {
+    font-size: 14px;
+    height: 700px;
+    width: 700px;
+}
+
 body {
     font-family: system-ui, sans-serif;
     line-height: 1.6;
-    margin: 0;
-    padding: 12px;
-    width: 360px;
+    width: 95%;
     box-sizing: border-box;
-    background-color:#666;
+    background-color:#70caffc9;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
+    margin: auto;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.tile {
+    width: 90%;
+    padding: 30px;
+    border: 2.5px solid #222222;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    /* ここを超強調！ */
+    box-shadow:
+        0 16px 48px 0 rgba(0, 0, 0, 0.45),   /* どっしり濃い影 */
+g
+        0 0.5px 2px 0 rgba(0,0,0,0.18);      /* さらに淡い縁取り影 */
+    transition: box-shadow 0.2s;
 }
 
 #header {
-    text-align: center;
     display: flex;
-    align-items: center; /* 縦方向の中央揃え */
-    gap: 8px;           /* アイコンとテキストの間に余白 */
+    flex-direction: row; /* 横並び */
+    align-items: center;
+    justify-content: flex-start; /* 左寄せ */
+    gap: 20px;
+    height: 20px;
 }
 
-.frame{
-    width: 90%;
-    padding: 5%;
-    height: 25%;
-    border: none;
-    background-color: #f5f5f5;
+.tile img {
+    width: 48px; /* アイコンのサイズ */
+    height: 48px;
+    margin-left: -10px; /* アイコンとテキストの間隔 */
 }
 
-h1 {
-    margin: 0 0 8px;
-    font-size: 18px;
+.title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* テキストを左揃え */
+    margin-top: 10px;
 }
 
-h2 {
-    margin: 16px 0 8px;
-    font-size: 14px;
+
+.title h1{
+    margin-top: 20px;
+    margin-bottom: -5px; /* さらに詰める */
+    font-size: 30px;
+    color: #22222297;
+}
+.title small{
+    font-size: 15px;
+    font-style: italic;
+    color: #838383b7;
+    font-weight: bolder;
+    margin-bottom: 40px;
+    margin-left: 4px;
+}
+
+/* 設定のための領域を確保する */
+#settings {
+    height: 150px;
 }
 
 label {
@@ -64,8 +103,7 @@ input[type="checkbox"] {
 
 input[type="number"],
 input[type="text"] {
-    width: 100%;
-    padding: 6px 8px;
+    width: 15%;
     box-sizing: border-box;
 }
 
@@ -74,11 +112,16 @@ input:disabled {
     color: #777;
 }
 
+/* タブ管理のための領域を確保する */
+#management {
+    height: 280px;
+}
+
 ul {
     padding-left: 18px;
     margin: 8px 0;
-    max-height: 180px;
-    overflow-y: auto;
+    max-height: 30px;
+    overflow-y: scroll;
 }
 
 li {
@@ -113,6 +156,31 @@ button {
     cursor: pointer;
     padding: 6px 10px;
     font-size: 13px;
+    background-color: #1976d2; /* 青色 */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+#closeNow,
+#sortNow {
+    height: 20px;
+    font-size: 12px;
+    text-align: center;
+    background-color: #0d47a1; /* 濃い青 */
+    border: 2.5px solid #222;
+    border-radius: 20px;
+    
+}
+
+#closeNow:hover,
+#sortNow:hover {
+    background-color: #002171; /* さらに濃い青 */
+}
+
+button:hover {
+    background-color: #1565c0; /* ホバー時に濃い青 */
 }
 
 .row {
@@ -122,6 +190,11 @@ button {
 
 .row>* {
     flex: 1;
+}
+
+.policy-label {
+    margin: 0;
+    align-self: center;
 }
 
 .delete-whitelist {

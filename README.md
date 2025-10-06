@@ -56,16 +56,13 @@ Keep your browser tidy by automatically closing idle tabs while giving you full 
 - [x] **Whitelist Support**  
     Allows certain sites or URLs to be excluded from auto-deletion.
     
-- [ ] **Customizable Timeout via UI**  
+- [x] **Customizable Timeout via UI**  
     Users can set or change the inactivity time threshold from the extension’s UI.
     
-- [ ] **Maximum Tab Limit Control**  
-    Sets a maximum number of tabs allowed to remain open; excess tabs get flagged or auto-closed.
-    
-- [ ] **Tab Restoration**  
+- [x] **Tab Restoration**  
     Lets users restore accidentally closed or auto-deleted tabs.
     
-- [ ] **Deletion Log Storage**  
+- [x] **Deletion Log Storage**  
     Keeps a history of deleted tabs for later reference.
     
 - [ ] **Tab Grouping**  
