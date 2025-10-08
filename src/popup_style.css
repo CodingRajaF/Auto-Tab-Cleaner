@@ -1,3 +1,8 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 /* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
 html {
     font-size: 14px;
@@ -30,7 +35,7 @@ body {
     
     width: 90%;
     padding: 30px;
-    border: 2.5px solid #222222;
+    border: 2.5px groove #222;   /* ← 彫り込み風の枠線に変更！ */
     background-color: #f5f5f5;
     border-radius: 10px;
     /* ここを超強調！ */
@@ -40,18 +45,22 @@ body {
     transition: box-shadow 0.2s;
 }
 
-button {
+
+
+button,.active{
     color: #fff;
     width: 120px;
     height: 25px;
     font-size: 14px;
     text-align: center;
-    background-color: #0d47a1;
+    background-color: #2589d0;
     /* 濃い青 */
-    border: 2.5px solid #222;
-    border-radius: 20px;
+    border: 2px solid #fff;
+    border-radius: 5px;
     font-weight: 00;
     line-height: 3px;
+    padding: 2px 6px;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 button:hover {
@@ -68,6 +77,7 @@ button:hover {
     justify-content: flex-start; /* 左寄せ */
     gap: 20px;
     height: 5px;
+    width: 100%;
 }
 
 .tile img {
@@ -75,6 +85,16 @@ button:hover {
     height: 48px;
     margin-left: -10px; /* アイコンとテキストの間隔 */
     align-items: center;
+}
+
+.tile:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s;
+    /* background-color: #f9fcff; */
+    /* ホバー時に影を強調 */
+    box-shadow:
+        0 20px 10px 0 rgba(0, 0, 0, 0.3),
+        0 6px 0 0 rgba(0,0,0,0.2);
 }
 
 .title {
@@ -184,6 +204,7 @@ label {
 
 input[type="checkbox"] {
     transform: scale(1.1);
+    cursor: pointer;
 }
 
 input[type="number"], input[type="text"] {
@@ -214,7 +235,7 @@ input:disabled {
 
 /* タブ管理のための領域を確保する */
 #management {
-    height: auto;
+    height: 320px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -230,21 +251,18 @@ input:disabled {
     align-items: center;
 }
 
-.switch {
-    flex: 1;
-    padding: 6px 12px;
-    font-size: 14px;
-    border: 2.5px solid #222;
-    border-radius: 20px;
-    background-color: #e0e0e0;
-    color: #222;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+.switch:not(.active) {
+    
+    background-color: #7b7b7b;
+    color: #fff;
 }
-
-.switch.active {
+/* .switch.active {
     background-color: #0d47a1;
     color: #fff;
+} */
+
+.hidden {
+    display: none;
 }
 
 label {
@@ -256,20 +274,60 @@ label {
     font-weight: 500;
 }
 ul {
-    padding-left: 18px;
+    padding: 10px 10px;
     margin: 8px 0;
-    max-height: 260px;
-    overflow-y: scroll;
-    outline: auto 1px;
+    min-height: 260px;
+    overflow-y: auto;    /* ← 必要な時だけ縦スクロールバー表示！ */
+    overflow-x: visible;  /* ← 横スクロール禁止 */
+    /* outline: auto 1px; */
     display: flex;
     flex-direction: column;
-    gap: 2px;
     font-size: auto;
     margin-top: 0px;
+    list-style: none; /* ← 黒丸を消す */
+    background-color: transparent;
+    height: auto;
 }
 
 li {
-    margin: 1px;
+    height: 60px;
+    padding: 15px 8px;
+    display: flex;
+    width: 90%;
+    flex-direction: column;
+    justify-content: center;
+    /* font-size: clamp(10px, 2vw, 12px); */
+    background: #fff;
+    /* 立体感を強調！ */
+    box-shadow:
+        0 4px 16px 0 rgba(0,0,0,0.18),   /* 影を濃く・広げる */
+        0 1.5px 3px 0 rgba(0,0,0,0.08);
+    margin-bottom: 6px; /* ulから浮かせる */
+    border-radius: 8px;
+    transition: box-shadow 0.25s, transform 0.18s;
+    /* ちょっと浮かせる */
+    border: 1.5px solid #e0e0e0;
+    /* ほんのりグラデーションで奥行き */
+    background: linear-gradient(135deg, #fff 80%, #f2f4f8 100%);
+    cursor: pointer;
+}
+
+li:hover {
+    /* ホバー時にさらに浮き上がる！ */
+    box-shadow:
+        /* 0 8px 24px 0 rgba(0,0,0,0.22), */
+        0 2px 8px 0 rgba(0,0,0,0.12);
+    transform: translateY(-2px) scale(1.025);
+    background: linear-gradient(135deg, #f8fbff 70%, #e3eaf3 100%);
+    border-color: #b0c4de;
+}
+
+.list-title{
+    font-size: 14px;
+}
+
+li .url{
+    font-size: clamp(6px, 2vw, 12px);
 }
 
 .item-row {
@@ -279,9 +337,8 @@ li {
 
 
 .url {
-    color: #0366d6;
+    color: #52a2fd;
     text-decoration: underline;
-    cursor: pointer;
     flex: 1;
 }
 
@@ -307,8 +364,4 @@ li {
 
 .delete-whitelist:hover {
     color: #b71c1c;
-}
-
-.hidden {
-    display: none;
 }

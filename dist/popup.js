@@ -9,10 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullCleanupToggle = document.querySelector("#fullCleanupToggle");
     const saveButton = document.querySelector("#save");
     const whitelistInput = document.querySelector("#whitelistInput");
-    const addWhitelistButton = document.querySelector("#addWhitelist");
+    // const addWhitelistButton = document.querySelector<HTMLButtonElement>("#addWhitelist");
     const whitelistUl = document.querySelector("#whitelist");
     const recentlyRemovedUl = document.querySelector("#recentlyRemoved");
     const clearRemovedBtn = document.querySelector("#clearRemoved");
+    const switchToWhitelistBtn = document.querySelector("#whitelistSwitch");
+    const switchToRecentlyRemovedBtn = document.querySelector("#historySwitch");
     let cachedFullCleanupMinutes = DEFAULT_FULL_CLEANUP_HOURS * MINUTES_PER_HOUR; // 理由: トグルOFF時に直近値を保持するため
     chrome.storage.sync.get(["timeoutMinutes", "fullCleanupMinutes", "fullCleanupEnabled", "whitelist"], (data) => {
         const normalizedTimeout = normalizeTimeout(data.timeoutMinutes, DEFAULT_TIMEOUT_MINUTES);
@@ -68,20 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             nextFullCleanupMinutes = computedMinutes;
         }
-        chrome.storage.sync.set({
-            timeoutMinutes,
-            fullCleanupMinutes: nextFullCleanupMinutes,
-            fullCleanupEnabled,
-        }, () => {
-            if (chrome.runtime.lastError) {
-                alert(`保存に失敗しました: ${chrome.runtime.lastError.message}`);
-                return;
-            }
-            cachedFullCleanupMinutes = nextFullCleanupMinutes;
-            alert("保存しました");
-        });
-    });
-    addWhitelistButton?.addEventListener("click", () => {
         if (!whitelistInput) {
             alert("内部エラー: 入力要素が見つかりません");
             return;
@@ -97,6 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 whitelistInput.value = "";
             });
         });
+        whitelistInput.value = "";
+        chrome.storage.sync.set({
+            timeoutMinutes,
+            fullCleanupMinutes: nextFullCleanupMinutes,
+            fullCleanupEnabled,
+        }, () => {
+            if (chrome.runtime.lastError) {
+                alert(`保存に失敗しました: ${chrome.runtime.lastError.message}`);
+                return;
+            }
+            cachedFullCleanupMinutes = nextFullCleanupMinutes;
+            alert("保存しました");
+        });
     });
     renderRecentlyRemoved(); // 理由: 直近の自動削除を可視化し誤操作からのリカバリを可能にするため
     clearRemovedBtn?.addEventListener("click", async () => {
@@ -104,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderRecentlyRemoved();
     });
     function addWhitelistItem(url) {
+        console.log("addWhitelistItem", url);
         const li = document.createElement("li");
         if (!whitelistUl)
             return;
@@ -165,13 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const { recentlyRemoved = [] } = await chrome.storage.local.get("recentlyRemoved");
         recentlyRemoved.forEach((item, index) => {
             const li = document.createElement("li");
+            // タイトル表示
+            const titleDiv = document.createElement("div");
+            titleDiv.className = "list-title";
+            titleDiv.textContent = shortenText(item.title || "(タイトルなし)", 40);
+            li.appendChild(titleDiv);
+            // URLと操作行
             const row = document.createElement("div");
             row.className = "item-row";
             const link = document.createElement("span");
             link.className = "url";
-            link.textContent = item.title || item.url;
-            link.title = item.url;
-            link.addEventListener("click", async (e) => {
+            link.textContent = shortenText(item.url);
+            link.title = "click me to restore\n" + item.url;
+            li.addEventListener("click", async (e) => {
                 e.preventDefault();
                 await restoreItem(index);
             });
@@ -183,6 +191,43 @@ document.addEventListener("DOMContentLoaded", () => {
             li.appendChild(row);
             recentlyRemovedUl.appendChild(li);
         });
+    }
+    switchToWhitelistBtn?.addEventListener("click", function () {
+        // const managementSection = document.querySelector<HTMLElement>("#management");
+        // console.log(managementSection?.offsetHeight);
+        if (this.classList.contains("active"))
+            return;
+        switchButton();
+    });
+    switchToRecentlyRemovedBtn?.addEventListener("click", function () {
+        if (this.classList.contains("active"))
+            return;
+        switchButton();
+    });
+    // テキストを短縮して表示する（最大40文字、超えたら...）
+    function shortenText(text, maxLength = 40) {
+        if (text.length <= maxLength)
+            return text;
+        return text.slice(0, maxLength - 3) + "...";
+    }
+    function switchButton() {
+        console.log("switchButton called");
+        const activeButton = document.querySelector(".switch.active");
+        const toswitchButton = document.querySelector(".switch:not(.active)");
+        if (activeButton) {
+            activeButton.classList.remove("active");
+        }
+        if (toswitchButton) {
+            toswitchButton.classList.add("active");
+        }
+        const hiddenUl = document.querySelector("ul.hidden");
+        const shownUl = document.querySelector("ul:not(.hidden)");
+        if (hiddenUl) {
+            hiddenUl.classList.remove("hidden");
+        }
+        if (shownUl) {
+            shownUl.classList.add("hidden");
+        }
     }
     async function restoreItem(index) {
         const { recentlyRemoved = [] } = await chrome.storage.local.get("recentlyRemoved");

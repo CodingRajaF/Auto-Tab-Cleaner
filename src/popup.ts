@@ -9,11 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullCleanupToggle = document.querySelector<HTMLInputElement>("#fullCleanupToggle");
     const saveButton = document.querySelector<HTMLButtonElement>("#save");
     const whitelistInput = document.querySelector<HTMLInputElement>("#whitelistInput");
-    const addWhitelistButton = document.querySelector<HTMLButtonElement>("#addWhitelist");
+    // const addWhitelistButton = document.querySelector<HTMLButtonElement>("#addWhitelist");
     const whitelistUl = document.querySelector<HTMLUListElement>("#whitelist");
     const recentlyRemovedUl = document.querySelector<HTMLUListElement>("#recentlyRemoved");
     const clearRemovedBtn = document.querySelector<HTMLButtonElement>("#clearRemoved");
-
+    const switchToWhitelistBtn = document.querySelector<HTMLButtonElement>("#whitelistSwitch");
+    const switchToRecentlyRemovedBtn = document.querySelector<HTMLButtonElement>("#historySwitch");
     let cachedFullCleanupMinutes = DEFAULT_FULL_CLEANUP_HOURS * MINUTES_PER_HOUR; // 理由: トグルOFF時に直近値を保持するため
 
     chrome.storage.sync.get(
@@ -41,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
             fullCleanupToggle.checked = enabled;
             cachedFullCleanupMinutes = normalizedFullCleanupMinutes;
             applyFullCleanupState(enabled);
-
             (data.whitelist || []).forEach((url:string) => addWhitelistItem(url));
         }
     );
@@ -64,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("数値を入力してください");
             return;
         }
-
         const timeoutMinutes = Math.floor(timeoutValue);
         if (timeoutMinutes < 1) {
             alert("通常タイムアウトは1以上で設定してください");
@@ -96,6 +95,22 @@ document.addEventListener("DOMContentLoaded", () => {
             nextFullCleanupMinutes = computedMinutes;
         }
 
+        if (!whitelistInput) {
+            alert("内部エラー: 入力要素が見つかりません");
+            return;
+        }
+        const url = whitelistInput.value.trim();
+        if (!url) return; // 理由: 空値は意味がなくノイズになるため
+
+        chrome.storage.sync.get("whitelist", (data) => {
+            const list = Array.isArray(data.whitelist) ? data.whitelist : [];
+            list.push(url);
+            chrome.storage.sync.set({ whitelist: list }, () => {
+                addWhitelistItem(url);
+                whitelistInput.value = "";
+            });
+        });
+        whitelistInput.value = "";
         chrome.storage.sync.set(
             {
                 timeoutMinutes,
@@ -113,24 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    addWhitelistButton?.addEventListener("click", () => {
-        if (!whitelistInput) {
-            alert("内部エラー: 入力要素が見つかりません");
-            return;
-        }
-        const url = whitelistInput.value.trim();
-        if (!url) return; // 理由: 空値は意味がなくノイズになるため
-
-        chrome.storage.sync.get("whitelist", (data) => {
-            const list = Array.isArray(data.whitelist) ? data.whitelist : [];
-            list.push(url);
-            chrome.storage.sync.set({ whitelist: list }, () => {
-                addWhitelistItem(url);
-                whitelistInput.value = "";
-            });
-        });
-    });
-
     renderRecentlyRemoved(); // 理由: 直近の自動削除を可視化し誤操作からのリカバリを可能にするため
 
     clearRemovedBtn?.addEventListener("click", async () => {
@@ -139,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function addWhitelistItem(url:string) {
+        console.log("addWhitelistItem", url);
         const li = document.createElement("li");
         if (!whitelistUl) return;
         li.dataset.index = String(whitelistUl.children.length);
@@ -209,15 +207,24 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         recentlyRemoved.forEach((item: { title?: string; url: string; removedAt: number }, index: number) => {
+            
             const li = document.createElement("li");
+
+            // タイトル表示
+            const titleDiv = document.createElement("div");
+            titleDiv.className = "list-title";
+            titleDiv.textContent = shortenText(item.title || "(タイトルなし)", 40);
+            li.appendChild(titleDiv);
+
+            // URLと操作行
             const row = document.createElement("div");
             row.className = "item-row";
 
             const link = document.createElement("span");
             link.className = "url";
-            link.textContent = item.title || item.url;
-            link.title = item.url;
-            link.addEventListener("click", async (e) => {
+            link.textContent = shortenText(item.url);
+            link.title = "click me to restore\n" + item.url;
+            li.addEventListener("click", async (e) => {
                 e.preventDefault();
                 await restoreItem(index);
             });
@@ -233,6 +240,44 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    switchToWhitelistBtn?.addEventListener("click", function () {
+        // const managementSection = document.querySelector<HTMLElement>("#management");
+        // console.log(managementSection?.offsetHeight);
+        if (this.classList.contains("active")) return;
+        switchButton();
+        
+    });
+
+    switchToRecentlyRemovedBtn?.addEventListener("click", function() {
+        if (this.classList.contains("active")) return;
+        switchButton();
+    });
+
+    // テキストを短縮して表示する（最大40文字、超えたら...）
+    function shortenText(text: string, maxLength: number = 40): string {
+        if (text.length <= maxLength) return text;
+        return text.slice(0, maxLength - 3) + "...";
+    }
+
+    function switchButton(){
+        console.log("switchButton called");
+        const activeButton = document.querySelector(".switch.active");
+        const toswitchButton = document.querySelector(".switch:not(.active)");
+        if (activeButton) {
+            activeButton.classList.remove("active");
+        }
+        if (toswitchButton) {
+            toswitchButton.classList.add("active");
+        }
+        const hiddenUl = document.querySelector("ul.hidden");
+        const shownUl = document.querySelector("ul:not(.hidden)");
+        if (hiddenUl) {
+            hiddenUl.classList.remove("hidden");
+        }
+        if (shownUl) {
+            shownUl.classList.add("hidden");
+        }
+    }
     async function restoreItem(index: number) {
         const { recentlyRemoved = [] } = await chrome.storage.local.get(
             "recentlyRemoved"

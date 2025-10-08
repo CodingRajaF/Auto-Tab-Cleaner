@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="popup_style.css" />
     </head>
     <body>
-        <section class="tile" id="header">
+        <header class="tile" id="header">
             <img src="icons/icon48.png" alt="Auto Tab Cleaner Icon" />
             
             <div class="title">
@@ -14,7 +14,7 @@
                 <small>Tidy Tabs, Clear Mind</small>
             </div>
 
-        </section>
+        </header>
 
         <section class="tile" id="settings">
             <div id="menu">
@@ -49,21 +49,28 @@
                         <!-- 理由: 入力確定の明確なトリガーを提供して誤入力の反映を防ぐため -->
                         <!-- <button id="addWhitelist">追加</button> -->
                     </div>
-                    <!-- 理由: 設定の可視性を確保し、誤登録の発見や整理を容易にするため -->
-                    <ul id="whitelist"></ul>
                 </label>
             </div>
         </section>
         <section class="tile" id="management">
             <div id="switchContainer">
-                <button class="switch active">Tab history</button>
-                <button class="switch">Whitelist</button>
+                <button id="historySwitch" class="switch active">Tab history</button>
+                <button id="whitelistSwitch" class="switch">Whitelist</button>
             </div>
             <!-- 理由: 履歴が不要になった際に痕跡を残さない選択肢を提供するため -->
             <!-- <button id="clearRemoved">履歴をクリア</button> -->
             <!-- 理由: 誤って閉じた場合に即時復元できる導線を提供するため -->
-            <ul id="recentlyRemoved"></ul>
-            <ul id="whitelistManagement" class="hidden"></ul>
+            <ul id="recentlyRemoved">
+                <li>
+                    <span class="title">title</span>
+                    <span class="url">url</span>
+                </li>
+            </ul>
+            <ul id="whitelist" class="hidden">
+                <li>
+                    <span class="url">url</span>
+                </li>
+            </ul>
         </section>
         <!-- 理由: ポップアップ特有の軽量ロジックを分離し保守性を高めるため -->
         <script src="../dist/popup.js"></script>
