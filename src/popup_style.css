@@ -1,129 +1,189 @@
-*{
+
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-/* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
+
 html {
-    font-size: 14px;
+    font-size: 15px;
     height: 600px;
     width: 700px;
+    background: linear-gradient(135deg, #eaf6ff 0%, #fafdff 100%);
 }
 
 body {
-    font-family: system-ui, sans-serif;
+    font-family: 'Orbitron', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
     font-size: 17px;
-    line-height: 1.6;
+    line-height: 1.7;
     width: 95%;
     box-sizing: border-box;
-    background-color:#919191dc;
+    background: linear-gradient(135deg, #e3eafc 0%, #c7dfff 100%);
+    /* tileと明確に区別するため、やや青みを強調 */
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
     margin: auto;
     height: 100%;
-    overflow-y: none; /* 縦スクロールバーを非表示 */
-    color: #696969;
-    font-weight: bold;
-    gap: 8px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    color: #2a3a4d;
+    font-weight: 600;
+    gap: 12px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 32px 0 rgba(80, 160, 255, 0.08);
 }
 
 .tile {
-    
-    width: 90%;
-    padding: 30px;
-    border: 2.5px groove #222;   /* ← 彫り込み風の枠線に変更！ */
-    background-color: #f5f5f5;
-    border-radius: 10px;
-    /* ここを超強調！ */
+    width: 92%;
+    padding: 28px 32px;
+    border-radius: 22px;
+    background: linear-gradient(120deg, #fafdff 60%, #eaf6ff 100%);
+    /* ホログラム感を出すため淡い虹色グラデーションの光彩を追加 */
     box-shadow:
-        0 15px 5px 0 rgba(0, 0, 0, 0.283),   /* 下方向を強調した濃い影 */
-        0 4px 0 0 rgba(0,0,0,0.18);      /* 下方向を強調した淡い縁取り影 */
-    transition: box-shadow 0.2s;
+        0 2px 12px 0 rgba(80, 160, 255, 0.10),
+        0 1.5px 6px 0 rgba(80, 160, 255, 0.08),
+        0 0 24px 2px rgba(120,200,255,0.10),
+        0 0 0 2px #b3d1ff inset;
+    border: 2px solid #b3d1ff;
+    transition: box-shadow 0.22s, background 0.22s, border 0.18s;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+.tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(120deg, rgba(80,160,255,0.10) 0%, rgba(255,255,255,0.13) 100%);
+    pointer-events: none;
+    z-index: 0;
+    box-shadow:
+        0 0 32px 8px rgba(120,200,255,0.10),
+        0 0 0 2px rgba(120,200,255,0.10) inset;
+    /* 擬似的なホログラム光彩 */
+    mix-blend-mode: lighten;
+    opacity: 0.85;
+}
+.tile::after {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 10%;
+    width: 80%;
+    height: 18%;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(120,200,255,0.13) 0%, rgba(255,255,255,0.18) 100%);
+    filter: blur(8px);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+}
+.tile:hover {
+    /* hover時は変化を最小限に、色味を少し強調 */
+    background: linear-gradient(120deg, #fafdff 80%, #e3f0ff 100%);
+    box-shadow:
+        0 4px 18px 0 rgba(80, 160, 255, 0.13),
+        0 0 32px 8px rgba(120,200,255,0.13),
+        0 0 0 2px #4fc3f7 inset;
+    border: 2px solid #4fc3f7;
 }
 
 
 
-button,.active{
+
+button, .active {
     color: #fff;
-    width: 120px;
-    height: 25px;
-    font-size: 14px;
+    width: 128px;
+    height: 34px;
+    font-size: 15px;
     text-align: center;
-    background-color: #2589d0;
-    /* 濃い青 */
-    border: 2px solid #fff;
-    border-radius: 5px;
-    font-weight: 00;
-    line-height: 3px;
-    padding: 2px 6px;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-button:hover {
-    background-color: #5ea4e9e1;
-    /* 明るい青 */
-    color: #fff;
+    background: linear-gradient(90deg, #4fc3f7 0%, #1976d2 100%);
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 8px 0 rgba(80, 160, 255, 0.13);
+    line-height: 1.2;
+    padding: 4px 12px;
+    transition: background 0.22s, color 0.18s, box-shadow 0.22s, transform 0.18s;
+    outline: none;
     cursor: pointer;
 }
 
+button:hover, .active:hover {
+    background: linear-gradient(90deg, #1976d2 0%, #4fc3f7 100%);
+    color: #e3f0ff;
+    box-shadow: 0 4px 16px 0 rgba(80, 160, 255, 0.18);
+    transform: translateY(-2px) scale(1.04);
+}
+
+
 #header {
     display: flex;
-    flex-direction: row; /* 横並び */
+    flex-direction: row;
     align-items: center;
-    justify-content: flex-start; /* 左寄せ */
+    justify-content: flex-start;
     gap: 20px;
     height: 5px;
     width: 100%;
 }
 
+
 .tile img {
-    width: 48px; /* アイコンのサイズ */
+    width: 48px;
     height: 48px;
-    margin-left: -10px; /* アイコンとテキストの間隔 */
+    margin-left: -10px;
     align-items: center;
+    filter: drop-shadow(0 2px 8px #b3e0ff88);
 }
 
+
 .tile:hover {
-    transform: translateY(-2px);
-    transition: transform 0.2s;
-    /* background-color: #f9fcff; */
-    /* ホバー時に影を強調 */
+    transform: translateY(-4px) scale(1.012);
+    background: linear-gradient(120deg, #eaf6ff 80%, #d0e6ff 100%);
     box-shadow:
-        0 20px 10px 0 rgba(0, 0, 0, 0.3),
-        0 6px 0 0 rgba(0,0,0,0.2);
+        0 12px 32px 0 rgba(80, 160, 255, 0.18),
+        0 2px 8px 0 rgba(80, 160, 255, 0.10);
 }
+
 
 .title {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* テキストを左揃え */
+    align-items: flex-start;
     margin-top: 10px;
 }
 
 
-.title h1{
+
+.title h1 {
     margin-top: 20px;
-    margin-bottom: -5px; /* さらに詰める */
-    font-size: 22px;
-    color: #22222297;
+    margin-bottom: -5px;
+    font-size: 24px;
+    color: #1976d2cc;
+    font-family: 'Orbitron', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 8px #b3e0ff33;
 }
-.title small{
+.title small {
     font-size: 15px;
     font-style: italic;
-    color: #838383b7;
-    font-weight: bolder;
+    color: #4fc3f7cc;
+    font-weight: 700;
     margin-bottom: 40px;
     margin-left: 4px;
+    letter-spacing: 0.02em;
 }
 
 /* 設定のための領域を確保する */
+
 #settings {
     width: 100%;
-    height: 160px;
+    min-height: 140px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -131,7 +191,12 @@ button:hover {
     align-items: flex-start;
     padding-top: 0px;
     padding-bottom: 0px;
+    background: linear-gradient(90deg, #eaf6ff 80%, #fafdff 100%);
+    border-radius: 14px;
+    box-shadow: 0 1.5px 6px 0 rgba(80, 160, 255, 0.06);
+    margin-bottom: 8px;
 }
+
 
 .setting-group label {
     display: flex;
@@ -139,21 +204,26 @@ button:hover {
     gap: 10px;
 }
 
+
 .setting-label-text {
     min-width: 150px;
     text-align: left;
     display: inline-block;
     margin-right: 6px;
+    color: #1976d2;
+    font-weight: 700;
 }
+
 
 .setting-unit {
     min-width: 40px;
     text-align: left;
     display: inline-block;
     margin-left: 6px;
-    color: #555;
+    color: #4fc3f7;
     font-size: 14px;
 }
+
 
 #menu {
     width: 100%;
@@ -163,10 +233,12 @@ button:hover {
     height: 40px;
 }
 
+
 #menu div {
     display: flex;
     gap: 10px;
 }
+
 
 #settings-container {
     width: 100%;
@@ -174,9 +246,11 @@ button:hover {
     padding-top: 0px;
 }
 
+
 #policy-label {
-    border-bottom: #222 solid 2px;
+    border-bottom: #1976d2 solid 2px;
 }
+
 
 
 
@@ -184,16 +258,22 @@ button:hover {
     margin-top: 10px;
     display: flex;
     flex-direction: column;
-    gap: 20px; /* 子要素の間に20pxのすき間 */
+    gap: 20px;
     justify-content: space-between;
     align-items: center;
 }
 
+
 label {
-    display: block;
-    margin: 8px 0;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 6px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1976d2;
 }
+
 
 .toggle {
     display: flex;
@@ -202,26 +282,34 @@ label {
     justify-content: flex-start;
 }
 
+
 input[type="checkbox"] {
-    transform: scale(1.1);
+    transform: scale(1.15);
     cursor: pointer;
+    accent-color: #4fc3f7;
+    transition: accent-color 0.18s;
 }
+
 
 input[type="number"], input[type="text"] {
     width: 80px;
     padding: 4px 8px;
     font-size: 15px;
-    border: 1.5px solid #b0b0b0;
-    border-radius: 6px;
+    border: 1.5px solid #b0c4de;
+    border-radius: 8px;
     margin-left: 10px;
     margin-right: 10px;
     background: #fff;
     box-sizing: border-box;
-    transition: border 0.2s;
+    transition: border 0.2s, box-shadow 0.18s;
+    color: #1976d2;
+    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
 
 input[type="number"]:focus, input[type="text"]:focus {
-    outline: 3px solid #8282827a; 
+    outline: none;
+    border: 1.5px solid #4fc3f7;
+    box-shadow: 0 0 0 2px #e3f0ff;
 }
 
 input[type="text"] {
@@ -229,13 +317,14 @@ input[type="text"] {
 }
 
 input:disabled {
-    background: #f5f5f5;
-    color: #777;
+    background: #fafdff;
+    color: #b0c4de;
 }
 
 /* タブ管理のための領域を確保する */
+
 #management {
-    height: 320px;
+    min-height: 260px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -246,88 +335,82 @@ input:disabled {
     padding-top: 4px;
 }
 
+
 #switchContainer {
     height: 30px;
     align-items: center;
 }
 
+
 .switch:not(.active) {
-    
-    background-color: #7b7b7b;
-    color: #fff;
+    background: linear-gradient(90deg, #b0c4de 0%, #e3f0ff 100%);
+    color: #1976d2;
+    border: none;
+    box-shadow: 0 1px 4px 0 rgba(80, 160, 255, 0.08);
 }
-/* .switch.active {
-    background-color: #0d47a1;
-    color: #fff;
-} */
+
 
 .hidden {
     display: none;
 }
 
-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0 6px 0;
-    font-size: 15px;
-    font-weight: 500;
-}
+
 ul {
     padding: 10px 10px;
     margin: 8px 0;
-    min-height: 260px;
-    overflow-y: auto;    /* ← 必要な時だけ縦スクロールバー表示！ */
-    overflow-x: visible;  /* ← 横スクロール禁止 */
-    /* outline: auto 1px; */
+    min-height: 220px;
+    overflow-y: auto;
+    overflow-x: visible;
     display: flex;
     flex-direction: column;
     font-size: auto;
     margin-top: 0px;
-    list-style: none; /* ← 黒丸を消す */
+    list-style: none;
     background-color: transparent;
     height: auto;
 }
 
 li {
-    height: 60px;
-    padding: 15px 8px;
+    min-height: 54px;
+    padding: 14px 12px;
     display: flex;
-    width: 90%;
+    width: 92%;
     flex-direction: column;
     justify-content: center;
-    /* font-size: clamp(10px, 2vw, 12px); */
-    background: #fff;
-    /* 立体感を強調！ */
+    background: linear-gradient(120deg, #fafdff 80%, #e3f0ff 100%);
     box-shadow:
-        0 4px 16px 0 rgba(0,0,0,0.18),   /* 影を濃く・広げる */
-        0 1.5px 3px 0 rgba(0,0,0,0.08);
-    margin-bottom: 6px; /* ulから浮かせる */
-    border-radius: 8px;
-    transition: box-shadow 0.25s, transform 0.18s;
-    /* ちょっと浮かせる */
-    border: 1.5px solid #e0e0e0;
-    /* ほんのりグラデーションで奥行き */
-    background: linear-gradient(135deg, #fff 80%, #f2f4f8 100%);
+        0 2px 8px 0 rgba(80, 160, 255, 0.10),
+        0 1.5px 3px 0 rgba(80, 160, 255, 0.06);
+    margin-bottom: 6px;
+    border-radius: 12px;
+    transition: box-shadow 0.22s, transform 0.16s, background 0.22s;
+    border: 1.5px solid #d0e6ff;
     cursor: pointer;
+    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
 
 li:hover {
-    /* ホバー時にさらに浮き上がる！ */
     box-shadow:
-        /* 0 8px 24px 0 rgba(0,0,0,0.22), */
-        0 2px 8px 0 rgba(0,0,0,0.12);
+        0 8px 24px 0 rgba(80, 160, 255, 0.16),
+        0 2px 8px 0 rgba(80, 160, 255, 0.10);
     transform: translateY(-2px) scale(1.025);
-    background: linear-gradient(135deg, #f8fbff 70%, #e3eaf3 100%);
-    border-color: #b0c4de;
+    background: linear-gradient(120deg, #eaf6ff 70%, #d0e6ff 100%);
+    border-color: #4fc3f7;
 }
 
-.list-title{
-    font-size: 14px;
+.list-title {
+    font-size: 15px;
+    color: #1976d2;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
-li .url{
-    font-size: clamp(6px, 2vw, 12px);
+li .url {
+    font-size: clamp(10px, 2vw, 13px);
+    color: #4fc3f7;
+    text-decoration: underline;
+    flex: 1;
+    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
 
 .item-row {
@@ -335,17 +418,17 @@ li .url{
     align-items: center;
 }
 
-
 .url {
-    color: #52a2fd;
+    color: #4fc3f7;
     text-decoration: underline;
     flex: 1;
 }
 
 .time {
-    color: #666;
-    font-size: 11px;
+    color: #b0c4de;
+    font-size: 12px;
     white-space: nowrap;
+    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
 
 .policy-label {
@@ -360,6 +443,7 @@ li .url{
     padding: 2px 6px;
     font-size: 16px;
     line-height: 1;
+    transition: color 0.18s;
 }
 
 .delete-whitelist:hover {

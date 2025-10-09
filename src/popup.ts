@@ -52,71 +52,65 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     saveButton?.addEventListener("click", () => {
-        if (!timeoutInput || !fullCleanupInput || !fullCleanupToggle){
-            alert("内部エラー: 入力要素が見つかりません");
-            return;
-        }
-        const timeoutValue = Number(timeoutInput.value);
-        const fullCleanupHourValue = Number(fullCleanupInput.value);
-        const fullCleanupEnabled = fullCleanupToggle.checked;
+        // 入力値を取得
+        const url = whitelistInput ? whitelistInput.value.trim() : "";
+        const timeoutValue = timeoutInput ? Number(timeoutInput.value) : NaN;
+        const fullCleanupHourValue = fullCleanupInput ? Number(fullCleanupInput.value) : NaN;
+        const fullCleanupEnabled = fullCleanupToggle ? fullCleanupToggle.checked : false;
 
-        if (!Number.isFinite(timeoutValue)) {
-            alert("数値を入力してください");
-            return;
-        }
-        const timeoutMinutes = Math.floor(timeoutValue);
-        if (timeoutMinutes < 1) {
-            alert("通常タイムアウトは1以上で設定してください");
-            return;
+        // 通常タイムアウト保存
+        let timeoutMinutes: number | undefined = undefined;
+        if (timeoutInput && !Number.isNaN(timeoutValue)) {
+            if (timeoutValue < 1) {
+                alert("通常タイムアウトは1以上で設定してください");
+                return;
+            }
+            timeoutMinutes = Math.floor(timeoutValue);
         }
 
+        // 全削除タイマー保存
         let nextFullCleanupMinutes = cachedFullCleanupMinutes;
-
         if (fullCleanupEnabled) {
-            if (!Number.isFinite(fullCleanupHourValue)) {
+            if (Number.isNaN(fullCleanupHourValue)) {
                 alert("数値を入力してください");
                 return;
             }
-
-            const computedMinutes = Math.floor(
-                fullCleanupHourValue * MINUTES_PER_HOUR
-            );
-
+            const computedMinutes = Math.floor(fullCleanupHourValue * MINUTES_PER_HOUR);
             if (computedMinutes < 1) {
                 alert("全削除タイムアウトは1時間以上で設定してください");
                 return;
             }
-
-            if (timeoutMinutes >= computedMinutes) {
+            if (timeoutMinutes !== undefined && timeoutMinutes >= computedMinutes) {
                 alert("全削除タイムアウトは通常タイムアウトより大きい必要があります");
                 return;
             }
-
             nextFullCleanupMinutes = computedMinutes;
         }
 
-        if (!whitelistInput) {
-            alert("内部エラー: 入力要素が見つかりません");
-            return;
-        }
-        const url = whitelistInput.value.trim();
-        if (!url) return; // 理由: 空値は意味がなくノイズになるため
-
-        chrome.storage.sync.get("whitelist", (data) => {
-            const list = Array.isArray(data.whitelist) ? data.whitelist : [];
-            list.push(url);
-            chrome.storage.sync.set({ whitelist: list }, () => {
-                addWhitelistItem(url);
-                whitelistInput.value = "";
+        // ホワイトリスト追加（空白はスキップ）
+        if (whitelistInput && url) {
+            chrome.storage.sync.get("whitelist", (data) => {
+                const list = Array.isArray(data.whitelist) ? data.whitelist : [];
+                list.push(url);
+                chrome.storage.sync.set({ whitelist: list }, () => {
+                    addWhitelistItem(url);
+                    whitelistInput.value = "";
+                });
             });
-        });
-        whitelistInput.value = "";
+        }
+
+        // 設定保存（値が未入力なら保存しない）
+        const saveObj: any = {};
+        if (timeoutMinutes !== undefined) saveObj.timeoutMinutes = timeoutMinutes;
+        if (fullCleanupEnabled) {
+            saveObj.fullCleanupMinutes = nextFullCleanupMinutes;
+            saveObj.fullCleanupEnabled = true;
+        } else {
+            saveObj.fullCleanupEnabled = false;
+        }
+
         chrome.storage.sync.set(
-            {
-                timeoutMinutes,
-                fullCleanupMinutes: nextFullCleanupMinutes,
-                fullCleanupEnabled,
-            },
+            saveObj,
             () => {
                 if (chrome.runtime.lastError) {
                     alert(`保存に失敗しました: ${chrome.runtime.lastError.message}`);
@@ -152,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
         deleteBtn.className = "delete-whitelist";
-        deleteBtn.textContent = "×";
+        deleteBtn.textContent = "Delete";
         deleteBtn.addEventListener("click", () => removeWhitelistItem(li));
 
         row.appendChild(urlSpan);
