@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // タイトル表示
             const titleDiv = document.createElement("div");
             titleDiv.className = "list-title";
-            titleDiv.textContent = shortenText(item.title || "(タイトルなし)", 40);
+            titleDiv.textContent = shortenText(item.title || "(タイトルなし)", 33);
             li.appendChild(titleDiv);
             // URLと操作行
             const row = document.createElement("div");
