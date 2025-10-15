@@ -52,12 +52,9 @@ body {
 }
 
 .tile:hover {
-    /* transform: translateY(-4px) scale(1.012); */
-    /* background: linear-gradient(120deg, #eaf6ff 80%, #d0e6ff 100%); */
     box-shadow:
         0 12px 32px 0 rgba(80, 160, 255, 0.18),
         0 2px 8px 0 rgba(80, 160, 255, 0.10);
-    border: 4px solid #8ad0f0fd;
 }
 
 button {
@@ -79,7 +76,7 @@ button {
 }
 .active {
     color: #fff;
-    background: linear-gradient(90deg, #4fc3f7 0%, #1976d2 100%);
+    background: linear-gradient(90deg, #3d4fee 0%, #884ce8 100%);
 }
 
 button:hover, .active:hover {
@@ -159,7 +156,7 @@ header h1 {
 
 #menu div {
     display: flex;
-    gap: 10px;
+    gap: 20px;
 }
 
 
@@ -247,7 +244,8 @@ input:disabled {
 #switchContainer {
     height: 30px;
     align-items: center;
-    margin-top: 10px;
+    display: flex;
+    gap: 12px;
 }
 
 
