@@ -28,7 +28,7 @@ body {
     height: 100%;
     color: #2a3a4d;
     font-weight: 600;
-    gap: 12px;
+    gap: 1em;
     padding-bottom: 1em;
     letter-spacing: 0.01em;
     box-shadow: 0 2px 32px 0 rgba(80, 160, 255, 0.08);
@@ -95,6 +95,8 @@ header {
     height: auto;
     width: 100vw;
     color: #e6e6e6;
+    margin-top: 10px;
+    
 }
 
 header h1 {
@@ -103,7 +105,7 @@ header h1 {
     font-family: 'BBH Sans Hegarty', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
     font-weight: 800;
     /* letter-spacing: 0.04em; */
-    text-shadow: 0 2px 8px #b3e0ff33;
+    text-shadow: 0px 4px 0px #ffffff80;
 }
 
 /* 設定のための領域を確保する */
