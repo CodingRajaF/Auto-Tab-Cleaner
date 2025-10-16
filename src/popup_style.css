@@ -58,12 +58,12 @@ body {
 }
 
 button {
-    color: #1976d2;
+    color: #ffffff;
     width: 128px;
     height: 34px;
     font-size: 15px;
     text-align: center;
-    background: linear-gradient(90deg, #b0c4de 0%, #e3f0ff 100%);
+    background: linear-gradient(90deg, #1a30f9 0%, #a672fa 100%);
     border: none;
     border-radius: 12px;
     font-weight: 700;
@@ -76,12 +76,12 @@ button {
 }
 .active {
     color: #fff;
-    background: linear-gradient(90deg, #3d4fee 0%, #884ce8 100%);
+    background: linear-gradient(90deg, #1a30f9 0%, #a672fa 100%);
 }
 
 button:hover, .active:hover {
-    background: linear-gradient(90deg, #1976d2 0%, #4fc3f7 100%);
-    color: #e3f0ff;
+    background: linear-gradient(90deg, #a672fa 0%, #1a30f9 100%);
+    color: #ffffff;
     transform: translateY(-2px) scale(1.04);
     box-shadow: 0 4px 16px 0 rgba(80, 160, 255, 0.16);
 }
@@ -295,14 +295,7 @@ li {
     font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
 
-li:hover {
-    box-shadow:
-        0 8px 24px 0 rgba(80, 160, 255, 0.16),
-        0 2px 8px 0 rgba(80, 160, 255, 0.10);
-    transform: translateY(-2px) scale(1.025);
-    background: linear-gradient(120deg, #eaf6ff 70%, #d0e6ff 100%);
-    border-color: #4fc3f7;
-}
+
 
 .list-title {
     font-size: 15px;
@@ -317,6 +310,15 @@ li .url {
     text-decoration: underline;
     flex: 1;
     font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+}
+
+li:hover {
+    box-shadow:
+        0 8px 24px 0 rgba(80, 160, 255, 0.16),
+        0 2px 8px 0 rgba(80, 160, 255, 0.10);
+    transform: translateY(-2px) scale(1.025);
+    background: linear-gradient(120deg, #eaecff 70%, #f1e8ff 100%);
+    border-color: #1a30f9;
 }
 
 .item-row {
