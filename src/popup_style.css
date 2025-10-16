@@ -292,7 +292,7 @@ li {
     margin-bottom: 6px;
     border-radius: 12px;
     transition: box-shadow 0.22s, transform 0.16s, background 0.22s;
-    border: 1.5px solid #d0e6ff;
+    border: 1.5px solid #9c87f8c5;
     cursor: pointer;
     font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
 }
