@@ -10,6 +10,22 @@ declare function getElement<T extends HTMLElement>(selector: string): T | null;
  */
 declare function getRequiredElement<T extends HTMLElement>(selector: string, errorMsg: string): T | null;
 /**
+ * Toast表示の設定
+ */
+interface ToastOptions {
+    type: 'success' | 'error' | 'info';
+    duration?: number;
+    dismissible?: boolean;
+}
+/**
+ * Toastを表示する共通関数
+ */
+declare function showToast(message: string, options?: ToastOptions): void;
+/**
+ * Toastを非表示にする
+ */
+declare function hideToast(toast: HTMLElement): void;
+/**
  * エラーメッセージを表示
  */
 declare function showError(message: string): void;

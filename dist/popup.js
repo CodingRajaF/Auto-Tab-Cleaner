@@ -20,16 +20,65 @@ function getRequiredElement(selector, errorMsg) {
     return element;
 }
 /**
+ * Toastを表示する共通関数
+ */
+function showToast(message, options = { type: 'info' }) {
+    // 既存のtoastがあれば削除
+    const existingToast = document.querySelector('.toast.show');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    // Toast要素を作成
+    const toast = createElement('div', {
+        className: `toast ${options.type}`,
+        textContent: message
+    });
+    // 閉じるボタンを追加（dismissibleがtrueの場合）
+    if (options.dismissible !== false) {
+        const closeBtn = createElement('button', {
+            className: 'toast-close',
+            textContent: '×'
+        });
+        closeBtn.addEventListener('click', () => {
+            hideToast(toast);
+        });
+        toast.appendChild(closeBtn);
+    }
+    // bodyに追加
+    document.body.appendChild(toast);
+    // アニメーション用のクラスを追加
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    // 自動削除（デフォルト3秒、エラーは5秒）
+    const duration = options.duration ?? (options.type === 'error' ? 5000 : 3000);
+    setTimeout(() => {
+        hideToast(toast);
+    }, duration);
+}
+/**
+ * Toastを非表示にする
+ */
+function hideToast(toast) {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300); // CSSのtransition時間に合わせる
+}
+/**
  * エラーメッセージを表示
  */
 function showError(message) {
-    alert(message);
+    showToast(message, { type: 'error' });
 }
 /**
  * 成功メッセージを表示
  */
 function showSuccess(message) {
-    alert(message);
+    showToast(message, { type: 'success' });
 }
 /**
  * Chrome Storage Syncからデータを取得
@@ -117,6 +166,8 @@ document.addEventListener("DOMContentLoaded", () => {
         !whitelistInput || !whitelistUl || !recentlyRemovedUl) {
         return; // エラーは各getRequiredElementで表示済み
     }
+    // タブ削除通知をチェックして表示
+    checkAndShowTabRemovedNotifications();
     let cachedFullCleanupMinutes = DEFAULT_FULL_CLEANUP_HOURS * MINUTES_PER_HOUR; // 理由: トグルOFF時に直近値を保持するため
     // 設定読み込み関数 📥
     async function loadSettings() {
@@ -379,6 +430,26 @@ document.addEventListener("DOMContentLoaded", () => {
         fullCleanupInput.title = enabled
             ? ""
             : "全削除タイマーを有効にすると編集できます";
+    }
+    // タブ削除通知をチェックして表示する関数
+    async function checkAndShowTabRemovedNotifications() {
+        try {
+            const data = await getLocalStorageData(["tabRemovedNotifications", "lastNotificationCheck"]);
+            const notifications = data.tabRemovedNotifications || [];
+            const lastCheck = data.lastNotificationCheck || 0;
+            const currentTime = Date.now();
+            // 前回チェック以降の新しい通知のみ表示
+            const newNotifications = notifications.filter((notification) => notification.removedAt > lastCheck);
+            for (const notification of newNotifications) {
+                const message = `📭 ${notification.title} が ${notification.reason} により閉じられました`;
+                showToast(message, { type: 'info', duration: 4000 });
+            }
+            // 最後のチェック時刻を更新
+            await setLocalStorageData({ lastNotificationCheck: currentTime });
+        }
+        catch (error) {
+            console.warn("Failed to check tab removed notifications", error);
+        }
     }
 });
 function normalizeTimeout(value, fallback) {
