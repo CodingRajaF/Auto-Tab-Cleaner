@@ -1,8 +1,175 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Delius&display=swap');
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html,
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+abbr,
+address,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+var,
+b,
+i,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+body {
+    line-height: 1;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+nav ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+a {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+/* change colours to suit your needs */
+ins {
+    background-color: #ff9;
+    color: #000;
+    text-decoration: none;
+}
+
+/* change colours to suit your needs */
+mark {
+    background-color: #ff9;
+    color: #000;
+    font-style: italic;
+    font-weight: bold;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+abbr[title],
+dfn[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* change border colour to suit your needs */
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #cccccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+input,
+select {
+    vertical-align: middle;
 }
 
 html {
@@ -13,7 +180,6 @@ html {
 }
 
 body {
-    font-family: 'Orbitron', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
     font-size: 17px;
     line-height: 1.7;
     width: 95%;
@@ -32,6 +198,9 @@ body {
     padding-bottom: 1em;
     letter-spacing: 0.01em;
     box-shadow: 0 2px 32px 0 rgba(80, 160, 255, 0.08);
+    font-family: "Delius", cursive;
+    font-weight: 400;
+    font-style: normal;
 }
 
 .tile {
@@ -65,10 +234,10 @@ button {
     text-align: center;
     background: linear-gradient(90deg, #1a30f9 0%, #a672fa 100%);
     border: none;
-    border-radius: 12px;
+    border-radius: 7px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    box-shadow: #2a3a4d79 2px 4px;
+    box-shadow: #2a3a4d79 2px 2px;
     line-height: 1.2;
     transition: background 0.22s, color 0.18s, box-shadow 0.22s, transform 0.18s;
     outline: none;
@@ -82,8 +251,8 @@ button {
 button:hover, .active:hover {
     background: linear-gradient(90deg, #a672fa 0%, #1a30f9 100%);
     color: #ffffff;
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 4px 16px 0 rgba(80, 160, 255, 0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgb(0 0 0 / 15%), 0 0 5px rgb(0 0 0 / 10%);
 }
 
 
@@ -93,19 +262,18 @@ header {
     align-items: center;
     justify-content: center;
     height: auto;
-    width: 100vw;
-    color: #e6e6e6;
+    width: auto;
+    color: #fdfdfd;
     margin-top: 10px;
-    
 }
 
 header h1 {
     font-size: 1.8em;
     /* color: #1976d2cc; */
-    font-family: 'BBH Sans Hegarty', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    /* font-family: 'BBH Sans Hegarty', 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif; */
     font-weight: 800;
     /* letter-spacing: 0.04em; */
-    text-shadow: 0px 4px 0px #ffffff80;
+    /* text-shadow: 0px 4px 0px #ffffff80; */
 }
 
 /* 設定のための領域を確保する */
@@ -132,7 +300,7 @@ header h1 {
     text-align: left;
     display: inline-block;
     /* margin-right: 6px; */
-    color: #1976d2;
+    /* color: #1976d2; */
     font-weight: 700;
 }
 
@@ -142,7 +310,7 @@ header h1 {
     text-align: left;
     display: inline-block;
     margin-left: 6px;
-    color: #4fc3f7;
+    /* color: #4fc3f7; */
     font-size: 14px;
 }
 
@@ -203,6 +371,7 @@ input[type="checkbox"] {
 input[type="number"], input[type="text"] {
     width: 80px;
     padding: 4px 8px;
+    font-weight: 700;
     font-size: 15px;
     border: 1.5px solid #b0c4de;
     border-radius: 8px;
@@ -212,7 +381,7 @@ input[type="number"], input[type="text"] {
     box-sizing: border-box;
     transition: border 0.2s, box-shadow 0.18s;
     color: #1976d2;
-    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    /* font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif; */
 }
 
 input[type="number"]:focus, input[type="text"]:focus {
@@ -276,6 +445,7 @@ ul {
     margin-top: 0px;
     list-style: none;
     background-color: transparent;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 li {
@@ -294,7 +464,7 @@ li {
     transition: box-shadow 0.22s, transform 0.16s, background 0.22s;
     border: 1.5px solid #9c87f8c5;
     cursor: pointer;
-    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    /* font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif; */
 }
 
 
@@ -311,7 +481,7 @@ li .url {
     color: #4fc3f7;
     text-decoration: underline;
     flex: 1;
-    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    /* font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif; */
 }
 
 li:hover {
@@ -334,12 +504,13 @@ li:hover {
     color: #b0c4de;
     font-size: 12px;
     white-space: nowrap;
-    font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+    /* font-family: 'Exo', 'Roboto', 'Segoe UI', 'Arial', sans-serif; */
 }
 
-.policy-label {
+#setting h2 {
     margin: 0;
     align-self: center;
+    font-size: 2px;
 }
 
 .delete-whitelist {
@@ -349,11 +520,13 @@ li:hover {
     padding: 2px 6px;
     font-size: 16px;
     line-height: 1;
+    background: linear-gradient(90deg, #b0c4de 0%, #e3f0ff 100%);
     transition: color 0.18s;
 }
 
 .delete-whitelist:hover {
-    color: #b71c1c;
+    color: #ffffff;
+    background: linear-gradient(90deg, #f9381a 0%, #a672fa 100%);
 }
 
 /* Toast通知のスタイル */
