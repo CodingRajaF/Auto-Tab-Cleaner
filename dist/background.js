@@ -62,6 +62,30 @@ async function logRemovedTab(tab, reason = "timeout") {
         console.warn("Failed to log removed tab", { tabId: tab?.id, reason }, error);
     }
 }
+// 理由: タブ削除をリアルタイムでユーザーに通知し、予期しない削除の把握を支援するため
+function notifyTabRemoved(tab, reason) {
+    try {
+        // ローカルストレージに通知データを保存（ポップアップで読み取り用）
+        chrome.storage.local.get(['tabRemovedNotifications'], (data) => {
+            const notifications = data.tabRemovedNotifications || [];
+            const reasonText = reason === "fullCleanup" ? "全削除タイマー" : "通常タイマー";
+            const notification = {
+                title: tab.title || "(タイトルなし)",
+                url: tab.url,
+                reason: reasonText,
+                removedAt: Date.now(),
+                id: Date.now() + Math.random() // ユニークID
+            };
+            notifications.unshift(notification);
+            // 最新5件のみ保持
+            const trimmed = notifications.slice(0, 5);
+            chrome.storage.local.set({ tabRemovedNotifications: trimmed });
+        });
+    }
+    catch (error) {
+        console.warn("Failed to notify tab removal", error);
+    }
+}
 // 理由: 設定未初期化でも確実に既定値を利用できるよう保証するため
 async function ensureDefaultSettings() {
     const defaults = {
@@ -207,6 +231,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         try {
             await logRemovedTab(tab, reason);
             await chrome.tabs.remove(tab.id);
+            // タブ削除通知をポップアップに送信
+            notifyTabRemoved(tab, reason);
         }
         catch (error) {
             console.warn(`Failed to remove tab\n  tabTitle: ${tab?.title}\n  reason: ${reason}\n  error: ${error}`);

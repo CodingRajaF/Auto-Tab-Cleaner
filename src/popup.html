@@ -3,72 +3,70 @@
     <head>
         <meta charset="UTF-8" />
         <title>Auto Tab Cleaner ポップアップ設定</title>
-        <style>
-            /* 理由: 限られたポップアップ領域で可読性と操作性を両立するため */
-            body { font-family: system-ui, sans-serif; line-height: 1.6; margin: 0; padding: 12px; width: 360px; box-sizing: border-box; }
-            h1 { margin: 0 0 8px; font-size: 18px; }
-            h2 { margin: 16px 0 8px; font-size: 14px; }
-            label { display: block; margin: 8px 0; font-size: 14px; }
-            label small { display: block; color: #666; font-size: 11px; margin-top: 2px; }
-            .toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-            input[type="checkbox"] { transform: scale(1.1); }
-            input[type="number"], input[type="text"] { width: 100%; padding: 6px 8px; box-sizing: border-box; }
-            input:disabled { background: #f5f5f5; color: #777; }
-            ul { padding-left: 18px; margin: 8px 0; max-height: 180px; overflow-y: auto; }
-            li { margin: 6px 0; }
-            .item-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-            .url { color: #0366d6; text-decoration: underline; cursor: pointer; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .time { color: #666; font-size: 11px; white-space: nowrap; }
-            button { cursor: pointer; padding: 6px 10px; font-size: 13px; }
-            .row { display: flex; gap: 8px; }
-            .row > * { flex: 1; }
-            .delete-whitelist { border: none; background: transparent; color: #d32f2f; padding: 2px 6px; font-size: 16px; line-height: 1; }
-            .delete-whitelist:hover { color: #b71c1c; }
-        </style>
+        <link rel="stylesheet" href="popup_style.css" />
     </head>
     <body>
-        <h1>設定</h1>
+        <header>
+            <h1>Auto Tab Cleaner</h1>
+        </header>
 
-        <section>
-            <label>
-                <!-- 理由: ユーザーが自分のワークフローに合わせて削除までの猶予を調整できるようにするため -->
-                削除までの放置時間（分）
-                <input type="number" id="timeout" min="1" value="30" />
-            </label>
-            <label class="toggle">
-                <!-- 理由: 全削除タイマーを任意で停止できるようにするため -->
-                <input type="checkbox" id="fullCleanupToggle" checked />全削除タイマーを有効にする
-            </label>
-            <label>
-                <!-- 理由: ホワイトリストに依存せず最終ラインの整理タイミングを制御できるようにするため -->
-                全削除までの最大放置時間（時間）
-                <input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" />
-                <small>ホワイトリスト対象も含め、通常タイムアウトより大きい値を設定してください。</small>
-            </label>
-            <!-- 理由: 自動保存だと意図せぬ変更が反映される恐れがあるため明示的な保存にする -->
-            <button id="save">保存</button>
-        </section>
-
-        <section>
-            <h2>ホワイトリスト</h2>
-            <div class="row">
-                <!-- 理由: 除外対象をURLで指定できれば予期しないタブのクローズを防げるため -->
-                <input type="text" id="whitelistInput" placeholder="例: https://example.com" />
-                <!-- 理由: 入力確定の明確なトリガーを提供して誤入力の反映を防ぐため -->
-                <button id="addWhitelist">追加</button>
+        <section class="tile" id="settings">
+            <div id="menu">
+                <h2 id="policy-label">Policy</h2>
+                <div>
+                    <button id="save">Save</button>
+                    <!-- <button id="closeNow">Close Tabs</button> -->
+                    <!-- <button id="sortNow">Sort Now</button> -->
+                </div>
             </div>
-            <!-- 理由: 設定の可視性を確保し、誤登録の発見や整理を容易にするため -->
-            <ul id="whitelist"></ul>
+            <!-- 設定項目をmenu直下に配置 -->
+            <div id="settings-container">
+                <label class="toggle">
+                    <!-- 理由: ユーザーが自分のワークフローに合わせて削除までの猶予を調整できるようにするため -->
+                    <span class="setting-label-text">Close idle tabs after:</span>
+                    <input type="number" id="timeout" min="1" value="15" title="without whitelist"/>
+                    <span class="setting-unit">min</span>
+                </label>
+                <label class="toggle">
+                    <!-- 理由: ホワイトリストに依存せず最終ラインの整理タイミングを制御できるようにするため -->
+                    <span class="setting-label-text">Close all tabs after:</span>
+                    <input type="number" id="fullCleanup" min="0.1" step="0.1" value="24" title="include whitelist"/>
+                    <span class="setting-unit">hour</span>
+                    <!-- 理由: 全削除タイマーを任意で停止できるようにするため -->
+                    <input type="checkbox" id="fullCleanupToggle" checked />
+                </label>
+                <label class="toggle">
+                    <span class="setting-label-text">Whitelist：</span>
+                    <div class="row">
+                        <!-- 理由: 除外対象をURLで指定できれば予期しないタブのクローズを防げるため -->
+                        <input type="text" id="whitelistInput" placeholder="例：https://example.com" />
+                        <!-- 理由: 入力確定の明確なトリガーを提供して誤入力の反映を防ぐため -->
+                        <!-- <button id="addWhitelist">追加</button> -->
+                    </div>
+                </label>
+            </div>
         </section>
-
-        <section>
-            <h2>最近削除したタブ</h2>
+        <section class="tile" id="management">
+            <div id="switchContainer">
+                <button id="historySwitch" class="switch active">Tab history</button>
+                <button id="whitelistSwitch" class="switch">Whitelist</button>
+            </div>
             <!-- 理由: 履歴が不要になった際に痕跡を残さない選択肢を提供するため -->
-            <button id="clearRemoved">履歴をクリア</button>
+            <!-- <button id="clearRemoved">履歴をクリア</button> -->
             <!-- 理由: 誤って閉じた場合に即時復元できる導線を提供するため -->
-            <ul id="recentlyRemoved"></ul>
+            <ul id="recentlyRemoved">
+                <!-- <li>
+                    <span class="title">title</span>
+                    <span class="url">url</span>
+                </li> -->
+            </ul>
+            <ul id="whitelist" class="hidden">
+                <!-- <li>
+                    <span class="url">url</span>
+                </li> -->
+            </ul>
         </section>
-
+        <!-- Toast要素は動的に作成されるため、HTMLには含めない -->
         <!-- 理由: ポップアップ特有の軽量ロジックを分離し保守性を高めるため -->
         <script src="../dist/popup.js"></script>
     </body>
