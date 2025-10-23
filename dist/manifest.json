@@ -9,16 +9,16 @@
         "alarms"
     ],
     "background": {
-        "service_worker": "dist/background.js"
+        "service_worker": "background.js"
     },
     "action": {
         "default_title": "Auto Tab Cleaner",
-        "default_popup": "src/popup.html"
+        "default_popup": "popup.html"
     },
     "icons": {
-        "16": "src/icons/icon16.png",
-        "32": "src/icons/icon32.png",
-        "48": "src/icons/icon48.png",
-        "128": "src/icons/icon128.png"
+        "16": "../src/icons/icon16.png",
+        "32": "../src/icons/icon32.png",
+        "48": "../src/icons/icon48.png",
+        "128": "../src/icons/icon128.png"
     }
 }
