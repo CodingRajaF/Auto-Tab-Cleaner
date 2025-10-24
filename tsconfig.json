@@ -8,9 +8,9 @@
     "types": ["node", "chrome"],
     "strict": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
     "jsx": "react-jsx",
     // 新しめオプションは一旦OFF
     // "verbatimModuleSyntax": true,
